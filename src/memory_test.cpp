@@ -2,7 +2,7 @@
 #include "memory.hpp"
 
 TEST_CASE("Memory validity.", "[memory]") {
-    c8::Memory m;
+    ch8::Memory m;
     REQUIRE(m.valid(0x000) == false); // Inside interpreter memory area.
     REQUIRE(m.valid(0x1FF) == false); // Also inside, right outside boundary.
     REQUIRE(m.valid(0x200) == true); // Just enough to be valid, program space.
@@ -11,7 +11,7 @@ TEST_CASE("Memory validity.", "[memory]") {
 }
 
 TEST_CASE("Writing/reading memory.", "[memory]") {
-    c8::Memory m;
+    ch8::Memory m;
     REQUIRE_THROWS(m.write(0x000, 0x42)); // Writing to invalid memory address.
     REQUIRE_THROWS(m.write(0x1FF, 0x42)); // Same, but at the boundary.
     REQUIRE_NOTHROW(m.write(0x200, 0x42)); // Should work, since we are inside program space.

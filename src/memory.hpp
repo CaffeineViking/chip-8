@@ -1,14 +1,14 @@
-#ifndef C8_MEMORY_HPP
-#define C8_MEMORY_HPP
+#ifndef CH8_MEMORY_HPP
+#define CH8_MEMORY_HPP
 
 #include <stdexcept>
 #include "definitions.hpp"
 
-namespace c8 {
+namespace ch8 {
     class Memory {
     public:
         // Interpreter data needs to be written in the Memory constructor.
-        bool valid(addr) const noexcept; // Checks if user program is operating on a valid address.
+        bool valid(addr) const; // Checks if user program is operating on a valid address.
         byte read(addr) const; // Reads byte at certain address. Throws exception if invalid.
         void write(addr, byte); // Writes byte to a certain address. Throws exception if invalid.
 
@@ -19,7 +19,7 @@ namespace c8 {
             PROGRAM = SIZE // The rest of the memory is for the program, but only up to addresss 0x0FFF.
         };
 
-        static bool within(addr, addr, addr) noexcept; // Checks if an address is between a piece of memory.
+        static bool within(addr, addr, addr); // Checks if an address is between a piece of memory.
         byte contents[SIZE]; // Actual contents, need to do bounds checking since we are dealing with
                              // a emulator here, would be bad to access memory that is out of bounds.
     };
