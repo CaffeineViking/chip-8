@@ -12,6 +12,7 @@ namespace ch8 {
         bool running() const { return still_running; } // Is the program still running?
 
     private:
+        // Mostly used for readability.
         enum class Register {
             V0 = 0, V1, V2, V3, V4,
             V5, V6, V7, V8, V9,
@@ -19,6 +20,9 @@ namespace ch8 {
             ST, DT, PC, I, SP
         };
 
+        // The postfix notation is what arguments the
+        // specific instruction takes. Example: A is for Address,
+        // R for Register, C for Constant etc...
         enum class Instruction {
             SYS_A, CLS, RET, JP_A, CALL_A, SE_RC,
             SNE_RC, SE_RR, LD_RC, ADD_RC, LD_RR,
