@@ -43,10 +43,10 @@ This section (and module) are concerned with the fetching of the instructions fr
 4. Execute the instruction, storing possible results in the given operands of OP.
 5. Increment the PC, making sure that the address is even.
 
-n. An interrupt from the outside can happen.
-n + 1. Fetch operands related to the interrupt being called (things like keyboard, sound, timer related things).
-n + 2. Do stuff depending on the type of interrupt, usually modifying the state of the processor.
-n + 3. Nothing more is needed, this might seem unrealistic, but this is an emulator after all ;)
+1. An interrupt from the outside can happen.
+2. Fetch operands related to the interrupt being called (things like keyboard, sound, timer related things).
+3. Do stuff depending on the type of interrupt, usually modifying the state of the processor.
+4. Nothing more is needed, this might seem unrealistic, but this is an emulator after all ;)
 
 Display
 -------
