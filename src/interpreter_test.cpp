@@ -44,4 +44,9 @@ TEST_CASE("Parsing instructions.", "[interpreter, instruction_parser]") {
 }
 
 TEST_CASE("Parsing arguments for instruction.", "[interpretr, argument_parser]") {
+    REQUIRE(ch8::Interpreter::parse_argument(ch8::Argument::X, 0x8A, 0xB2) == 0x0A); // ADD ->VA, VB.
+    REQUIRE(ch8::Interpreter::parse_argument(ch8::Argument::Y, 0x8A, 0xB2) == 0x0B); // ADD VA, ->VB.
+    REQUIRE(ch8::Interpreter::parse_argument(ch8::Argument::ADDRESS, 0xAA, 0xBC) == 0xABC); // LD I, ->A.
+    REQUIRE(ch8::Interpreter::parse_argument(ch8::Argument::X, 0xCA, 0xBC) == 0x0A); // RND ->VA, 0xBC.
+    REQUIRE(ch8::Interpreter::parse_argument(ch8::Argument::CONSTANT, 0xCA, 0xBC) == 0xBC); // RND VA, ->0xBC.
 }
