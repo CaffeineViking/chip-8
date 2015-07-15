@@ -22,22 +22,29 @@ namespace ch8 {
         bool delay_issued() const { return DT != 0; } // Both timers need to be counted down.
         word register_state(Register) const; // Returns the state of a register (dump), for debugging.
 
-        bool execute(Instruction, byte, byte); // Executes the instruction with arguments given.
-        void tick(Memory&); // Steps the processor state forward.
+        void execute(Instruction, byte, byte); // Executes the instruction with arguments given.
+        void step(Memory&); // Steps the processor state forward.
 
     private:
+        void inst_cls(); // Clear screen.
+        void inst_ret(); // Returns to the address pointed by SP.
+
         bool still_running {true};
-        byte V[16]; // General purpose registers (8-bits), V0 - VF.
+        byte V[16] = {0}; // General purpose registers (8-bits), V0 - VF.
         byte ST {0}, DT {0}; // Special purpose registers, sound and delay timers.
 
         static constexpr addr PROGRAM_INIT {0x200};
-        addr PC {PROGRAM_INIT}, I; // Program Counter and address storage register I.
+        addr PC {PROGRAM_INIT}, I {0x0000}; // Program Counter and address storage register I.
         byte SP {0x00}; // Stack pointer, only need 16 places (officially) so 8-bits suffice.
 
         static constexpr std::size_t STACK_SIZE {16};
-        word stack[STACK_SIZE]; // The 16-bit sized stack places, usually contains return addresses.
-        byte screen_buffer[64 * 32];  // The 64x32 sized screen needs to store its state. Instructions
+        word stack[STACK_SIZE] = {0}; // The 16-bit sized stack places, usually contains return addresses.
+
+        static constexpr std::size_t WIDTH {64};
+        static constexpr std::size_t HEIGHT {32};
+        byte screen_buffer[WIDTH * HEIGHT];  // The 64x32 sized screen needs to store its state. Instructions
                                       // affecting the screen modify this, higher implementation will use this.
+                                      // A byte of 0x00 represents no color, 0x01 represents color.
     };
 }
 

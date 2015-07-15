@@ -2,11 +2,21 @@
 #include <stdexcept>
 
 namespace ch8 {
-    bool Processor::execute(Instruction inst, byte inst_upper, byte inst_lower) {
-        return false;
+    void Processor::execute(Instruction inst, byte inst_upper, byte inst_lower) {
+        byte x = Interpreter::parse_argument(Argument::X, inst_upper, inst_lower);
+        byte y = Interpreter::parse_argument(Argument::Y, inst_upper, inst_lower);
+        word addr = Interpreter::parse_argument(Argument::ADDRESS, inst_upper, inst_lower);
+        byte constant = Interpreter::parse_argument(Argument::CONSTANT, inst_upper, inst_lower);
+
+        switch (inst) {
+        case Instruction::SYS_A: break;
+        case Instruction::CLS: inst_cls(); break;
+        case Instruction::RET: inst_ret(); break;
+        default: throw std::runtime_error {"Couldn't execute instruction."};
+        }
     }
 
-    void Processor::tick(Memory& memory) {
+    void Processor::step(Memory& memory) {
         // Since every instruction is 2 bytes long, we need to fetch
         // the upper and lower part of the instrution. Also, this is assuming
         // PC is currently aligned to an even address, if not, shit happens.
@@ -18,8 +28,7 @@ namespace ch8 {
 
         // Parse instruction and execute it, getting constants from body.
         Instruction instruction {Interpreter::parse(instruction_upper, instruction_lower)};
-        bool success {execute(instruction, instruction_upper, instruction_lower)};
-        if (!success) throw std::runtime_error {"Couldn't execute instruction"};
+        execute(instruction, instruction_upper, instruction_lower);
         ++PC; // Prepare for next instruction.
     }
 
@@ -36,6 +45,18 @@ namespace ch8 {
         case Register::PC: return PC; break;
         case Register::I: return I; break;
         case Register::SP: return SP; break;
+        default: return 0x0000;
         }
+    }
+
+    void Processor::inst_cls() {
+        for (std::size_t i {0}; i < WIDTH * HEIGHT; ++i) {
+            screen_buffer[i] = 0x00; // Clear pixel.
+        }
+    }
+
+    void Processor::inst_ret() {
+        if (SP == 0) PC = stack[0x00];
+        else PC = stack[SP--];
     }
 }
