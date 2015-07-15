@@ -9,10 +9,18 @@
 namespace ch8 {
     class Processor {
     public:
+        enum class Register {
+            V0 = 0, V1, V2, V3, V4,
+            V5, V6, V7, V8, V9,
+            VA, VB, VC, VD, VE, VF,
+            ST, DT, PC, I, SP
+        };
+
         bool running() const { return still_running; } // Is the program still running?
         const byte* display_buffer() const { return screen_buffer; } // Needs to be drawn for real later.
         bool sound_issued() const { return ST != 0; } // Upper abstraction needs to sound beep.
         bool delay_issued() const { return DT != 0; } // Both timers need to be counted down.
+        word register_state(Register) const; // Returns the state of a register (dump), for debugging.
 
         bool execute(Instruction, byte, byte); // Executes the instruction with arguments given.
         void tick(Memory&); // Steps the processor state forward.

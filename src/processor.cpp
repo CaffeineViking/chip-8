@@ -22,4 +22,20 @@ namespace ch8 {
         if (!success) throw std::runtime_error {"Couldn't execute instruction"};
         ++PC; // Prepare for next instruction.
     }
+
+    word Processor::register_state(Register reg) const {
+        switch (reg) {
+        case Register::V0: case Register::V1: case Register::V2:
+        case Register::V3: case Register::V4: case Register::V5:
+        case Register::V6: case Register::V7: case Register::V8:
+        case Register::V9: case Register::VA: case Register::VB:
+        case Register::VC: case Register::VD: case Register::VE:
+        case Register::VF: return V[static_cast<byte>(reg)]; break;
+        case Register::ST: return ST; break;
+        case Register::DT: return DT; break;
+        case Register::PC: return PC; break;
+        case Register::I: return I; break;
+        case Register::SP: return SP; break;
+        }
+    }
 }
