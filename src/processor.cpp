@@ -12,6 +12,13 @@ namespace ch8 {
         case Instruction::SYS_A: break;
         case Instruction::CLS: inst_cls(); break;
         case Instruction::RET: inst_ret(); break;
+        case Instruction::JP_A: inst_jpa(addr); break;
+        case Instruction::CALL_A: inst_calla(addr); break;
+        case Instruction::SE_RC: inst_serc(x, constant); break;
+        case Instruction::SNE_RC: inst_snerc(x, constant); break;
+        case Instruction::SE_RR: inst_serr(x, y); break;
+        case Instruction::LD_RC: inst_ldrc(x, constant); break;
+        case Instruction::ADD_RC: inst_addrc(x, constant); break;
         default: throw std::runtime_error {"Couldn't execute instruction."};
         }
     }
@@ -29,7 +36,7 @@ namespace ch8 {
         // Parse instruction and execute it, getting constants from body.
         Instruction instruction {Interpreter::parse(instruction_upper, instruction_lower)};
         execute(instruction, instruction_upper, instruction_lower);
-        ++PC; // Prepare for next instruction.
+        if (!jump_inst(instruction)) ++PC; // Prepare for next instruction.
     }
 
     word Processor::register_state(Register reg) const {
@@ -39,19 +46,27 @@ namespace ch8 {
         case Register::V6: case Register::V7: case Register::V8:
         case Register::V9: case Register::VA: case Register::VB:
         case Register::VC: case Register::VD: case Register::VE:
-        case Register::VF: return V[static_cast<byte>(reg)]; break;
-        case Register::ST: return ST; break;
-        case Register::DT: return DT; break;
-        case Register::PC: return PC; break;
-        case Register::I: return I; break;
-        case Register::SP: return SP; break;
+        case Register::VF: return V[static_cast<byte>(reg)];
+        case Register::ST: return ST;
+        case Register::DT: return DT;
+        case Register::PC: return PC;
+        case Register::I: return I;
+        case Register::SP: return SP;
         default: return 0x0000;
+        }
+    }
+
+    bool Processor::jump_inst(Instruction inst) {
+        switch (inst) {
+            case Instruction::JP_A: case Instruction::JP_V0A:
+            case Instruction::CALL_A: case Instruction::RET: return true;
+            default: return false;
         }
     }
 
     void Processor::inst_cls() {
         for (std::size_t i {0}; i < WIDTH * HEIGHT; ++i) {
-            screen_buffer[i] = 0x00; // Clear pixel.
+            screen_buffer[i] = 0x00; // Clear pixels.
         }
     }
 
@@ -59,4 +74,17 @@ namespace ch8 {
         if (SP == 0) PC = stack[0x00];
         else PC = stack[SP--];
     }
+
+    void Processor::inst_jpa(addr address) { PC = address; }
+    void Processor::inst_calla(addr address) {
+        stack[++SP] = PC;
+        PC = address;
+    }
+
+    void Processor::inst_serc(byte reg, byte constant) { if (V[reg] == constant) PC += 2; }
+    void Processor::inst_snerc(byte reg, byte constant) { if (V[reg] != constant) PC += 2; }
+    void Processor::inst_serr(byte regx, byte regy) { if (V[regx] == V[regy]) PC += 2; }
+
+    void Processor::inst_ldrc(byte reg, byte constant) { V[reg] = constant; }
+    void Processor::inst_addrc(byte reg, byte constant) { V[reg] += constant; }
 }

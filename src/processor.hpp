@@ -28,8 +28,16 @@ namespace ch8 {
     private:
         void inst_cls(); // Clear screen.
         void inst_ret(); // Returns to the address pointed by SP.
+        void inst_jpa(addr); // Jumps to the target address.
+        void inst_calla(addr); // Jumps to the target address and sets the return address.
+        void inst_serc(byte, byte); // Skips next instruction if register is equal to constant.
+        void inst_snerc(byte, byte); // Skips next instruction if register is NOT equal to constant.
+        void inst_serr(byte, byte); // Skips next instruction if both registers are equal.
+        void inst_ldrc(byte, byte); // Loads constant to register.
+        void inst_addrc(byte, byte); // Addts constant to register.
 
         bool still_running {true};
+        static bool jump_inst(Instruction); // Checks if this is a jump instruction.
         byte V[16] = {0}; // General purpose registers (8-bits), V0 - VF.
         byte ST {0}, DT {0}; // Special purpose registers, sound and delay timers.
 
@@ -37,7 +45,7 @@ namespace ch8 {
         addr PC {PROGRAM_INIT}, I {0x0000}; // Program Counter and address storage register I.
         byte SP {0x00}; // Stack pointer, only need 16 places (officially) so 8-bits suffice.
 
-        static constexpr std::size_t STACK_SIZE {16};
+        static constexpr std::size_t STACK_SIZE {16 + 1}; // + 1 since first is never used.
         word stack[STACK_SIZE] = {0}; // The 16-bit sized stack places, usually contains return addresses.
 
         static constexpr std::size_t WIDTH {64};
