@@ -109,3 +109,23 @@ TEST_CASE("ADD adds a constant to register.", "[processor, inst_addrc]") {
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::ADD_RC, 0x70, 0x03)); // ADD V0, 0x03.
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x45); // Random number.
 }
+
+TEST_CASE("LD loads content from x to y.", "[processor, inst_ldrr]") {
+    ch8::Processor p;
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00); // Zero per- default.
+    REQUIRE(p.register_state(ch8::Processor::Register::V1) == 0x00); // Zero per- default.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x32)); // LD V1, 0x32.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RR, 0x80, 0x10)); // LD V0, V1.
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x32); // Both should be equal.
+    REQUIRE(p.register_state(ch8::Processor::Register::V1) == 0x32); // Both should be equal.
+}
+
+TEST_CASE("OR performs bitwise or on both registers.", "[processor, inst_orrr]") {
+    ch8::Processor p;
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00); // Zero per- default.
+    REQUIRE(p.register_state(ch8::Processor::Register::V1) == 0x00); // Zero per- default.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x04)); // LD V1, 0x04.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x02)); // LD V0, 0x02.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::OR_RR, 0x80, 0x11)); // OR V0, V1.
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x06); // Bitwise OR of 0b100 and 0b010 = 0b110.
+}

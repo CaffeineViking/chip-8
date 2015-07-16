@@ -35,6 +35,8 @@ namespace ch8 {
         void inst_serr(byte, byte); // Skips next instruction if both registers are equal.
         void inst_ldrc(byte, byte); // Loads constant to register.
         void inst_addrc(byte, byte); // Addts constant to register.
+        void inst_ldrr(byte, byte); // Loads value of a certain register to another.
+        void inst_orrr(byte, byte); // Performs a bitwise OR operation on both registers.
 
         bool still_running {true};
         static bool jump_inst(Instruction); // Checks if this is a jump instruction.

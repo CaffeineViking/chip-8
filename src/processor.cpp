@@ -19,6 +19,8 @@ namespace ch8 {
         case Instruction::SE_RR: inst_serr(x, y); break;
         case Instruction::LD_RC: inst_ldrc(x, constant); break;
         case Instruction::ADD_RC: inst_addrc(x, constant); break;
+        case Instruction::LD_RR: inst_ldrr(x, y); break;
+        case Instruction::OR_RR: inst_orrr(x, y); break;
         default: throw std::runtime_error {"Couldn't execute instruction."};
         }
     }
@@ -87,4 +89,6 @@ namespace ch8 {
 
     void Processor::inst_ldrc(byte reg, byte constant) { V[reg] = constant; }
     void Processor::inst_addrc(byte reg, byte constant) { V[reg] += constant; }
+    void Processor::inst_ldrr(byte regx, byte regy) { V[regx] = V[regy]; }
+    void Processor::inst_orrr(byte regx, byte regy) { V[regx] |= V[regy]; }
 }
