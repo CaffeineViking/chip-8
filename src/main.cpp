@@ -6,9 +6,12 @@
 #include "definitions.hpp"
 
 int main() {
+    // Simple for loop (equivalent) where
+    // V1 is incremented until reaching V0.
     const ch8::byte program[] =
-    {0x60, 0x42, 0x61, 0x08, // LD V0, 0x42; LD V1, 0x08
-     0x80, 0x11}; // OR V0, V1
+    {0x60, 0x0A, 0x61, 0x00, // LD V0, 10; LD V1, 0
+     0x71, 0x01, 0x50, 0x10, // ADD V1, 1; SE V0, V1
+     0x12, 0x04}; // JP 0x204
 
     ch8::Memory memory {program, sizeof(program)};
     ch8::Processor processor;
