@@ -1,5 +1,7 @@
 #include "processor.hpp"
 #include <stdexcept>
+#include <iostream>
+#include <iomanip>
 
 namespace ch8 {
     void Processor::execute(Instruction inst, byte inst_upper, byte inst_lower) {
@@ -56,6 +58,30 @@ namespace ch8 {
         case Register::SP: return SP;
         default: return 0x0000;
         }
+    }
+
+    void Processor::dump() const {
+        std::cout << "PC: " << std::setw(4) << std::hex << PC
+                  << ", SP: " << std::setw(4) << std::hex << static_cast<short>(SP) << ',' << std::endl
+                  << " I: " << std::setw(4) << std::hex << I
+                  << ", V0: " << std::setw(4) << std::hex << static_cast<short>(V[0])
+                  << ", V1: " << std::setw(4) << std::hex << static_cast<short>(V[1])
+                  << ", V2: " << std::setw(4) << std::hex << static_cast<short>(V[2]) << ',' << std::endl
+                  << "V3: " << std::setw(4) << std::hex << static_cast<short>(V[3])
+                  << ", V4: " << std::setw(4) << std::hex << static_cast<short>(V[4])
+                  << ", V5: " << std::setw(4) << std::hex << static_cast<short>(V[5])
+                  << ", V6: " << std::setw(4) << std::hex << static_cast<short>(V[6]) << ',' << std::endl
+                  << "V7: " << std::setw(4) << std::hex << static_cast<short>(V[7])
+                  << ", V8: " << std::setw(4) << std::hex << static_cast<short>(V[8])
+                  << ", V9: " << std::setw(4) << std::hex << static_cast<short>(V[9])
+                  << ", VA: " << std::setw(4) << std::hex << static_cast<short>(V[0xA]) << ',' << std::endl
+                  << "VB: " << std::setw(4) << std::hex << static_cast<short>(V[0xB])
+                  << ", VC: " << std::setw(4) << std::hex << static_cast<short>(V[0xC])
+                  << ", VD: " << std::setw(4) << std::hex << static_cast<short>(V[0xD])
+                  << ", VE: " << std::setw(4) << std::hex << static_cast<short>(V[0xE]) << ',' << std::endl
+                  << "VF: " << std::setw(4) << std::hex << static_cast<short>(V[0xF])
+                  << ", ST: " << std::setw(4) << std::hex << static_cast<short>(ST)
+                  << ", DT: " << std::setw(4) << std::hex << static_cast<short>(DT) << std::endl;
     }
 
     bool Processor::jump_inst(Instruction inst) {

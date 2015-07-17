@@ -21,6 +21,7 @@ namespace ch8 {
         bool sound_issued() const { return ST != 0; } // Upper abstraction needs to sound beep.
         bool delay_issued() const { return DT != 0; } // Both timers need to be counted down.
         word register_state(Register) const; // Returns the state of a register (dump), for debugging.
+        void dump() const; // Dumps entire state to stdout.
 
         void execute(Instruction, byte, byte); // Executes the instruction with arguments given.
         void step(Memory&); // Steps the processor state forward.

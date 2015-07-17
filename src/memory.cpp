@@ -1,6 +1,12 @@
 #include "memory.hpp"
+#include <cstring>
 
 namespace ch8 {
+    Memory::Memory(const byte* program, std::size_t program_size) {
+        std::memcpy(contents + static_cast<addr>(Limit::INTERPRETER), program, program_size);
+        // Interpreter data needs to be written below...
+    }
+
     bool Memory::valid(addr address) const{
         addr program_begin {static_cast<addr>(Limit::INTERPRETER)};
         addr program_end {static_cast<addr>(Limit::PROGRAM) - 1};

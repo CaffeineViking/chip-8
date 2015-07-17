@@ -53,7 +53,6 @@ TEST_CASE("JP jumps to target address.", "[processor, inst_jpa]") {
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0xFFF); // Needs to be at 0xFFF.
 }
 
-
 TEST_CASE("CALL calls a subroutine, storing return address.", "[processor, inst_calla]") {
     ch8::Processor p;
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // Default PC location.

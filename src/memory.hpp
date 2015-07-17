@@ -8,6 +8,7 @@ namespace ch8 {
     class Memory {
     public:
         // Interpreter data needs to be written in the Memory constructor.
+        Memory(const byte*, std::size_t); // Copies program of size k to main memory.
         bool valid(addr) const; // Checks if user program is operating on a valid address.
         byte read(addr) const; // Reads byte at certain address. Throws exception if invalid.
         void write(addr, byte); // Writes byte to a certain address. Throws exception if invalid.
