@@ -20,8 +20,8 @@ int main() {
     do {
         processor.dump();
         ch8::addr program_counter {processor.register_state(ch8::Processor::Register::PC)};
-        std::cout << "Next instruction: 0x" << std::setw(2) << std::setfill('0') << std::hex << static_cast<short>(memory.read(program_counter))
-                  << std::setw(2) << std::setfill('0') << std::hex << static_cast<short>(memory.read(program_counter + 1)) << std::endl;
+        std::cout << "Next instruction: 0x" << std::setw(2) << std::setfill('0') << std::hex << static_cast<ch8::addr>(memory.read(program_counter))
+                  << std::setw(2) << std::setfill('0') << std::hex << static_cast<ch8::addr>(memory.read(program_counter + 1)) << std::endl;
 
         processor.step(memory);
         input = std::getchar();

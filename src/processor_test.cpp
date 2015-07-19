@@ -128,3 +128,36 @@ TEST_CASE("OR performs bitwise or on both registers.", "[processor, inst_orrr]")
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::OR_RR, 0x80, 0x11)); // OR V0, V1.
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x06); // Bitwise OR of 0b100 and 0b010 = 0b110.
 }
+
+TEST_CASE("AND performs bitwise and on both registers.", "[processor, inst_andrr]") {
+    ch8::Processor p;
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00); // Zero per- default.
+    REQUIRE(p.register_state(ch8::Processor::Register::V1) == 0x00); // Zero per- default.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x06)); // LD V1, 0x06.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x02)); // LD V0, 0x02.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::AND_RR, 0x80, 0x12)); // AND V0, V1.
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x02); // Bitwise AND of 0b110 and 0b010 = 0b010.
+}
+
+TEST_CASE("XOR performs bitwise xor on both registers.", "[processor, inst_xorrr]") {
+    ch8::Processor p;
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00); // Zero per- default.
+    REQUIRE(p.register_state(ch8::Processor::Register::V1) == 0x00); // Zero per- default.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x07)); // LD V1, 0x07.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x03)); // LD V0, 0x03.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::XOR_RR, 0x80, 0x13)); // XOR V0, V1.
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x04); // Bitwise XOR of 0b111 and 0b011 = 0b100.
+}
+
+TEST_CASE("ADD between registers, can result in overflow.", "[processor, inst_addrr]") {
+    ch8::Processor p;
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x07)); // LD V0, 0x07.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x03)); // LD V1, 0x03.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::ADD_RR, 0x80, 0x14)); // ADD V0, V1.
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x0A); // 7 + 3 = 10, obviously.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0xFE)); // LD V0, 0xfe.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x05)); // LD V1, 0x05.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::ADD_RR, 0x80, 0x14)); // ADD V0, V1.
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x03); // 254 + 5 = 3, obviously :p.
+    REQUIRE(p.register_state(ch8::Processor::Register::VF) == 0x01); // Overflow flag should be set.
+}

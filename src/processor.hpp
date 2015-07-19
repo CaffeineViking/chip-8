@@ -31,13 +31,18 @@ namespace ch8 {
         void inst_ret(); // Returns to the address pointed by SP.
         void inst_jpa(addr); // Jumps to the target address.
         void inst_calla(addr); // Jumps to the target address and sets the return address.
+
         void inst_serc(byte, byte); // Skips next instruction if register is equal to constant.
         void inst_snerc(byte, byte); // Skips next instruction if register is NOT equal to constant.
         void inst_serr(byte, byte); // Skips next instruction if both registers are equal.
         void inst_ldrc(byte, byte); // Loads constant to register.
-        void inst_addrc(byte, byte); // Addts constant to register.
+        void inst_addrc(byte, byte); // Adds constant to register.
+
         void inst_ldrr(byte, byte); // Loads value of a certain register to another.
         void inst_orrr(byte, byte); // Performs a bitwise OR operation on both registers.
+        void inst_andrr(byte, byte); // Performs a bitwise AND operation on both registers.
+        void inst_xorrr(byte, byte); // Performs a bitwise XOR operation on both registers.
+        void inst_addrr(byte, byte); // Adds register content to another register.
 
         bool still_running {true};
         static bool jump_inst(Instruction); // Checks if this is a jump instruction.
