@@ -14,7 +14,7 @@ int main() {
      0x12, 0x04}; // JP 0x204
 
     ch8::Memory memory {program, sizeof(program)};
-    ch8::Processor processor;
+    ch8::Processor processor {memory};
 
     char input;
     do {
@@ -23,7 +23,7 @@ int main() {
         std::cout << "Next instruction: 0x" << std::setw(2) << std::setfill('0') << std::hex << static_cast<ch8::addr>(memory.read(program_counter))
                   << std::setw(2) << std::setfill('0') << std::hex << static_cast<ch8::addr>(memory.read(program_counter + 1)) << std::endl;
 
-        processor.step(memory);
+        processor.step();
         input = std::getchar();
     } while(input != 'q' && processor.running());
 

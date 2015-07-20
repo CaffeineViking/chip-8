@@ -1,8 +1,10 @@
 #include "catch.hpp"
 #include "processor.hpp"
 
+const ch8::byte p[4096] = {0}; // Some memory for the test.
+ch8::Memory m {p, 4096}; // Memory abstraction for test, a total 4 KiB of memory.
 TEST_CASE("Processor constructed state.", "[processor, initial_state]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00);
     REQUIRE(p.register_state(ch8::Processor::Register::V8) == 0x00);
     REQUIRE(p.register_state(ch8::Processor::Register::VF) == 0x00);
@@ -14,13 +16,13 @@ TEST_CASE("Processor constructed state.", "[processor, initial_state]") {
 }
 
 TEST_CASE("SYS ignored.", "[processor, inst_sys]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::SYS_A, 0x02, 0x00)); // SYS 0x200.
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // State unchanged.
 }
 
 TEST_CASE("CLS clears screen.", "[processor, inst_cls]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::CLS, 0x00, 0xE0)); // CLS.
     REQUIRE(p.display_buffer()[0] == 0x00); // First pixel must be clear.
     REQUIRE(p.display_buffer()[64 * 32 - 1] == 0x00); // Last pixel must be clear.
@@ -29,7 +31,7 @@ TEST_CASE("CLS clears screen.", "[processor, inst_cls]") {
 }
 
 TEST_CASE("RET pops the stack and modifies PC.", "[processor, inst_ret]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // Default PC location.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::RET, 0x00, 0xEE)); // RET.
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x000); // Default stack content at SP.
@@ -45,7 +47,7 @@ TEST_CASE("RET pops the stack and modifies PC.", "[processor, inst_ret]") {
 }
 
 TEST_CASE("JP jumps to target address.", "[processor, inst_jpa]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // Default PC location.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::JP_A, 0x12, 0x08)); // JP 0x208.
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x208); // Needs to be at 0x208.
@@ -54,7 +56,7 @@ TEST_CASE("JP jumps to target address.", "[processor, inst_jpa]") {
 }
 
 TEST_CASE("CALL calls a subroutine, storing return address.", "[processor, inst_calla]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // Default PC location.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::CALL_A, 0x22, 0x08)); // CALL 0x208.
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x208); // Needs to be at 0x208.
@@ -66,7 +68,7 @@ TEST_CASE("CALL calls a subroutine, storing return address.", "[processor, inst_
 }
 
 TEST_CASE("SE compares register to constant, skips next instruction if same.", "[processor, inst_serc]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // Default PC location.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::SE_RC, 0x30, 0x21)); // SE V0, 0x21 (V0 = 0x00).
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // Should remain unchanged.
@@ -76,7 +78,7 @@ TEST_CASE("SE compares register to constant, skips next instruction if same.", "
 }
 
 TEST_CASE("SNE compares register to constant, skips next instruction if same.", "[processor, inst_snerc]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // Default PC location.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::SNE_RC, 0x40, 0x21)); // SNE V0, 0x21 (V0 = 0x00).
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x202); // Should increment to next instruction.
@@ -86,7 +88,7 @@ TEST_CASE("SNE compares register to constant, skips next instruction if same.", 
 }
 
 TEST_CASE("SE compares register to another register, skips if true.", "[processor, inst_serr]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // Default PC location.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::SE_RR, 0x50, 0x00)); // SE V0, V1 (V0, V1 = 0x00).
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x202); // Should increment to next instruction.
@@ -94,14 +96,14 @@ TEST_CASE("SE compares register to another register, skips if true.", "[processo
 }
 
 TEST_CASE("LD loads constant to register.", "[processor, inst_ldrc]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00); // Zero per- default.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x42)); // LD V0, 0x42.
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x42); // Should contain the meaning of life.
 }
 
 TEST_CASE("ADD adds a constant to register.", "[processor, inst_addrc]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00); // Zero per- default.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x42)); // LD V0, 0x42.
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x42); // Should contain the meaning of life.
@@ -110,7 +112,7 @@ TEST_CASE("ADD adds a constant to register.", "[processor, inst_addrc]") {
 }
 
 TEST_CASE("LD loads content from x to y.", "[processor, inst_ldrr]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00); // Zero per- default.
     REQUIRE(p.register_state(ch8::Processor::Register::V1) == 0x00); // Zero per- default.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x32)); // LD V1, 0x32.
@@ -120,7 +122,7 @@ TEST_CASE("LD loads content from x to y.", "[processor, inst_ldrr]") {
 }
 
 TEST_CASE("OR performs bitwise or on both registers.", "[processor, inst_orrr]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00); // Zero per- default.
     REQUIRE(p.register_state(ch8::Processor::Register::V1) == 0x00); // Zero per- default.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x04)); // LD V1, 0x04.
@@ -130,7 +132,7 @@ TEST_CASE("OR performs bitwise or on both registers.", "[processor, inst_orrr]")
 }
 
 TEST_CASE("AND performs bitwise and on both registers.", "[processor, inst_andrr]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00); // Zero per- default.
     REQUIRE(p.register_state(ch8::Processor::Register::V1) == 0x00); // Zero per- default.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x06)); // LD V1, 0x06.
@@ -140,7 +142,7 @@ TEST_CASE("AND performs bitwise and on both registers.", "[processor, inst_andrr
 }
 
 TEST_CASE("XOR performs bitwise xor on both registers.", "[processor, inst_xorrr]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00); // Zero per- default.
     REQUIRE(p.register_state(ch8::Processor::Register::V1) == 0x00); // Zero per- default.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x07)); // LD V1, 0x07.
@@ -150,7 +152,7 @@ TEST_CASE("XOR performs bitwise xor on both registers.", "[processor, inst_xorrr
 }
 
 TEST_CASE("ADD between registers, can result in overflow.", "[processor, inst_addrr]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x07)); // LD V0, 0x07.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x03)); // LD V1, 0x03.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::ADD_RR, 0x80, 0x14)); // ADD V0, V1.
@@ -164,7 +166,7 @@ TEST_CASE("ADD between registers, can result in overflow.", "[processor, inst_ad
 }
 
 TEST_CASE("SUB between registers, can result in borrow.", "[processor, inst_subrr]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x07)); // LD V0, 0x07.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x03)); // LD V1, 0x03.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::SUB_RR, 0x80, 0x15)); // SUB V0, V1.
@@ -178,7 +180,7 @@ TEST_CASE("SUB between registers, can result in borrow.", "[processor, inst_subr
 }
 
 TEST_CASE("SHR shifts first register right by one.", "[processor, inst_shrrr]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x08)); // LD V0, 0x02.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::SHR_RR, 0x80, 0x16)); // SHR V0, {VF}.
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x04); // 0x08 / 2 = 0x04.
@@ -192,7 +194,7 @@ TEST_CASE("SHR shifts first register right by one.", "[processor, inst_shrrr]") 
 }
 
 TEST_CASE("SUBN between inverse registers, can result in borrow.", "[processor, inst_subnrr]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x07)); // LD V1, 0x07.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x03)); // LD V0, 0x03.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::SUBN_RR, 0x80, 0x17)); // SUBN V0, V1.
@@ -206,7 +208,7 @@ TEST_CASE("SUBN between inverse registers, can result in borrow.", "[processor, 
 }
 
 TEST_CASE("SHL shifts first register left by one.", "[processor, inst_shlrr]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x08)); // LD V0, 0x02.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::SHL_RR, 0x80, 0x1E)); // SHL V0, {VF}.
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x10); // 0x08 * 2 = 0x10.
@@ -222,7 +224,7 @@ TEST_CASE("SHL shifts first register left by one.", "[processor, inst_shlrr]") {
 }
 
 TEST_CASE("SNE compares register to register, skips next instruction if same.", "[processor, inst_snerr]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // Default PC location.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x08)); // LD V0, 0x08.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x38)); // LD V1, 0x38.
@@ -236,14 +238,14 @@ TEST_CASE("SNE compares register to register, skips next instruction if same.", 
 }
 
 TEST_CASE("LD loads a certain address to the I register.", "[processor, inst_ldia]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::I) == 0x000);
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_IA, 0xA1, 0x23)); // LD I, 0x123.
     REQUIRE(p.register_state(ch8::Processor::Register::I) == 0x123);
 }
 
 TEST_CASE("JP jumps to target address plus offset.", "[processor, inst_jpv0a]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // Default PC location.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::JP_V0A, 0xB2, 0x08)); // JP 0x208 (V0 = 0x00).
     REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x208); // Needs to be at 0x208.
@@ -256,7 +258,7 @@ TEST_CASE("JP jumps to target address plus offset.", "[processor, inst_jpv0a]") 
 }
 
 TEST_CASE("RND assigns a random value to register, limited to constant.", "[processor, inst_rndrc]") {
-    ch8::Processor p;
+    ch8::Processor p {m};
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::RND_RC, 0xC0, 0x0F)); // RND V0, 0x0F (0-15).
     REQUIRE(p.register_state(ch8::Processor::Register::V0) <= 15); // Needs to be between 0 and 15.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::RND_RC, 0xC0, 0xFF)); // RND V0, 0xFF (0-255).

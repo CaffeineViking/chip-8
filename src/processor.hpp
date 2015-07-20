@@ -17,7 +17,7 @@ namespace ch8 {
             ST, DT, PC, I, SP
         };
 
-        Processor();
+        Processor(Memory&); // Always needs main memory.
         bool running() const { return still_running; } // Is the program still running?
         const byte* display_buffer() const { return screen_buffer; } // Needs to be drawn for real later.
         bool sound_issued() const { return ST != 0; } // Upper abstraction needs to sound beep.
@@ -26,13 +26,14 @@ namespace ch8 {
         void dump() const; // Dumps entire state to stdout.
 
         void execute(Instruction, byte, byte); // Executes the instruction with arguments given.
-        void step(Memory&); // Steps the processor state forward.
+        void step(); // Steps the processor state forward.
 
     private:
         std::mt19937 random_generator; // Will be given a random seed from device.
         std::uniform_int_distribution<byte> random_udistribution {0, 255}; // Should output uniformally.
 
         bool still_running {true};
+        Memory& memory; // Reference to main memory.
         static bool jump_inst(Instruction); // Checks if this is a jump instruction.
         byte V[16] = {0}; // General purpose registers (8-bits), V0 - VF.
         byte ST {0}, DT {0}; // Special purpose registers, sound and delay timers.
@@ -44,11 +45,11 @@ namespace ch8 {
         static constexpr std::size_t STACK_SIZE {16 + 1}; // + 1 since first is never used.
         word stack[STACK_SIZE] = {0}; // The 16-bit sized stack places, usually contains return addresses.
 
-        static constexpr std::size_t WIDTH {64};
+        static constexpr std::size_t WIDTH {64 / 8}; // Divided by 8 since we can store 8 pixels.
         static constexpr std::size_t HEIGHT {32};
         byte screen_buffer[WIDTH * HEIGHT];  // The 64x32 sized screen needs to store its state. Instructions
-                                      // affecting the screen modify this, higher implementation will use this.
-                                      // A byte of 0x00 represents no color, 0x01 represents color.
+                                             // affecting the screen modify this, higher implementation will use 
+                                             // this. A zero represents no color, a one represents color.
 
         void inst_cls(); // Clear screen.
         void inst_ret(); // Returns to the address pointed by SP.

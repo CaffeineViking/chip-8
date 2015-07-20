@@ -2,14 +2,15 @@
 #include <stdexcept>
 #include <iostream>
 #include <iomanip>
+#include <cstring>
 
 namespace ch8 {
-    Processor::Processor() {
+    Processor::Processor(Memory& mem) : memory {mem} {
         std::random_device rnd; // Hardware based RNG, expensive.
         random_generator.seed(rnd()); // Software based now, cheap!
     }
 
-    void Processor::step(Memory& memory) {
+    void Processor::step() {
         // Since every instruction is 2 bytes long, we need to fetch
         // the upper and lower part of the instrution. Also, this is assuming
         // PC is currently aligned to an even address, if not, shit happens.
