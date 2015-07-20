@@ -77,6 +77,7 @@ namespace ch8 {
         case Instruction::JP_V0A: inst_jpv0a(addr); break;
         case Instruction::RND_RC: inst_rndrc(x, constant); break;
         case Instruction::DRW_RRC: inst_drwrrc(x, y, constant & 0x0F); break;
+        case Instruction::EXIT: still_running = false; break;
         default: throw std::runtime_error {"Couldn't execute instruction."};
         }
     }
@@ -183,5 +184,23 @@ namespace ch8 {
     }
 
     void Processor::inst_drwrrc(byte regx, byte regy, byte length) {
+        bool collided {false};
+        // For every pixel in the sprite (in memory).
+        for (std::size_t y {0}; y < length; ++y) {
+            for (std::size_t x {0}; x < 8; ++x) {
+                // Find out the address translation, both for the screen and the sprite.
+                std::size_t screen_pixel = ((V[regx] + x) % WIDTH) + (((V[regy] + y) % HEIGHT) * WIDTH);
+                addr sprite_line = y;
+
+                // Perform a XOR operation when writing the pixel, if it already has had a
+                // value before, a collision has occured, hence, set VF to 1, else not.
+                byte prev_screen {screen_buffer[screen_pixel]};
+                screen_buffer[screen_pixel] ^= (memory.read(I + sprite_line) >> (7 - x)) & 0x01;
+                if (prev_screen == 1 && screen_buffer[screen_pixel] == 0) collided = true;
+            }
+        }
+
+        if (collided) V[0x0F] = 1;
+        else V[0x0F] = 0;
     }
 }

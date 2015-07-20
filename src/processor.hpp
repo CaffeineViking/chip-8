@@ -45,7 +45,7 @@ namespace ch8 {
         static constexpr std::size_t STACK_SIZE {16 + 1}; // + 1 since first is never used.
         word stack[STACK_SIZE] = {0}; // The 16-bit sized stack places, usually contains return addresses.
 
-        static constexpr std::size_t WIDTH {64 / 8}; // Divided by 8 since we can store 8 pixels.
+        static constexpr std::size_t WIDTH {64};
         static constexpr std::size_t HEIGHT {32};
         byte screen_buffer[WIDTH * HEIGHT];  // The 64x32 sized screen needs to store its state. Instructions
                                              // affecting the screen modify this, higher implementation will use 

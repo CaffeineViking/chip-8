@@ -1,8 +1,8 @@
 #include "catch.hpp"
 #include "processor.hpp"
 
-const ch8::byte p[4096] = {0}; // Some memory for the test.
-ch8::Memory m {p, 4096}; // Memory abstraction for test, a total 4 KiB of memory.
+ch8::byte prog[4096] = {0}; // Some memory for the test.
+ch8::Memory m {prog, 4096}; // Memory abstraction for test, a total 4 KiB of memory.
 TEST_CASE("Processor constructed state.", "[processor, initial_state]") {
     ch8::Processor p {m};
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00);
@@ -263,4 +263,87 @@ TEST_CASE("RND assigns a random value to register, limited to constant.", "[proc
     REQUIRE(p.register_state(ch8::Processor::Register::V0) <= 15); // Needs to be between 0 and 15.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::RND_RC, 0xC0, 0xFF)); // RND V0, 0xFF (0-255).
     REQUIRE(p.register_state(ch8::Processor::Register::V0) <= 255); // Needs to be between 0 and 255.
+}
+
+TEST_CASE("DRW draws a sprite from memory to the display buffer.", "[processor, inst_drwrrc]") {
+    ch8::Processor p {m};
+    const ch8::byte* dbuffer {p.display_buffer()};
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::CLS, 0x00, 0xEE)); // CLS.
+
+    // Check that the screen is clear.
+    REQUIRE(dbuffer[0] == 0);
+    REQUIRE(dbuffer[64] == 0);
+    REQUIRE(dbuffer[2 * 64] == 0);
+    REQUIRE(dbuffer[3 * 64] == 0);
+
+    // Write a sprite to memory.
+    m.write(0x200, 0x80);
+    m.write(0x201, 0x80);
+    m.write(0x202, 0x80);
+    m.write(0x203, 0x80);
+
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_IA, 0xA2, 0x00)); // LD I, 0x200.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x00)); // LD V0, 0x00.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x00)); // LD V1, 0x00.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::DRW_RRC, 0xD0, 0x14)); // DRW V0, V1, 4.
+
+    // Check that the sprite has been written.
+    REQUIRE(dbuffer[0] == 1);
+    REQUIRE(dbuffer[64] == 1);
+    REQUIRE(dbuffer[2 * 64] == 1);
+    REQUIRE(dbuffer[3 * 64] == 1);
+    REQUIRE(p.register_state(ch8::Processor::Register::VF) == 0x00); // No collision should have happened.
+
+    // Check that the screen is clear.
+    REQUIRE(dbuffer[4 * 64] == 0);
+    REQUIRE(dbuffer[5 * 64] == 0);
+    REQUIRE(dbuffer[6 * 64] == 0);
+    REQUIRE(dbuffer[7 * 64] == 0);
+
+    // Write sprite a bit lower, just below first sprite.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_IA, 0xA2, 0x00)); // LD I, 0x200.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x00)); // LD V0, 0x00.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x04)); // LD V1, 0x04.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::DRW_RRC, 0xD0, 0x14)); // DRW V0, V1, 4.
+
+    // Check that the sprite has been written.
+    REQUIRE(dbuffer[4 * 64] == 1);
+    REQUIRE(dbuffer[5 * 64] == 1);
+    REQUIRE(dbuffer[6 * 64] == 1);
+    REQUIRE(dbuffer[7 * 64] == 1);
+    REQUIRE(p.register_state(ch8::Processor::Register::VF) == 0x00); // No collision should have happened.
+
+    // Check that the screen is clear.
+    REQUIRE(dbuffer[8 * 64] == 0);
+    REQUIRE(dbuffer[9 * 64] == 0);
+    REQUIRE(dbuffer[10 * 64] == 0);
+
+    // Write sprite a bit lower, now colliding with the second sprite.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_IA, 0xA2, 0x00)); // LD I, 0x200.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x00)); // LD V0, 0x00.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x07)); // LD V1, 0x07.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::DRW_RRC, 0xD0, 0x14)); // DRW V0, V1, 4.
+
+    // Check that the sprite has been written.
+    REQUIRE(dbuffer[7 * 64] == 0); // Should have been overwritten.
+    REQUIRE(dbuffer[8 * 64] == 1);
+    REQUIRE(dbuffer[9 * 64] == 1);
+    REQUIRE(dbuffer[10 * 64] == 1);
+    REQUIRE(p.register_state(ch8::Processor::Register::VF) == 0x01); // Collision should have happened.
+
+    // Some kind of ball?!
+    m.write(0x200, 0x18);
+    m.write(0x201, 0x18);
+
+    // Draw ball shaped thing at (8, 8).
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_IA, 0xA2, 0x00)); // LD I, 0x200.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x08)); // LD V0, 0x08.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x08)); // LD V1, 0x08.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::DRW_RRC, 0xD0, 0x12)); // DRW V0, V1, 2.
+
+    REQUIRE(dbuffer[8 * 64 + 8 + 3] == 1);
+    REQUIRE(dbuffer[8 * 64 + 8 + 4] == 1);
+    REQUIRE(dbuffer[9 * 64 + 8 + 3] == 1);
+    REQUIRE(dbuffer[9 * 64 + 8 + 4] == 1);
+    REQUIRE(p.register_state(ch8::Processor::Register::VF) == 0x00); // Collision should NOT have happened.
 }

@@ -15,7 +15,7 @@ namespace ch8 {
         SHR_RR, SUBN_RR, SHL_RR, SNE_RR, LD_IA,
         JP_V0A, RND_RC, DRW_RRC, SKP_R, SKNP_R,
         LD_RD, LD_RK, LD_DR, LD_SR, ADD_IR, LD_FR,
-        LD_BR, LD_IAR, LD_RAI
+        LD_BR, LD_IAR, LD_RAI, EXIT
     };
 
     // Possible argumemnts to retrieve from instructiion.
