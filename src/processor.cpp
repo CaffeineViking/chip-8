@@ -28,6 +28,15 @@ namespace ch8 {
         case Instruction::AND_RR: inst_andrr(x, y); break;
         case Instruction::XOR_RR: inst_xorrr(x, y); break;
         case Instruction::ADD_RR: inst_addrr(x, y); break;
+        case Instruction::SUB_RR: inst_subrr(x, y); break;
+        case Instruction::SHR_RR: inst_shrrr(x, y); break;
+        case Instruction::SHL_RR: inst_shlrr(x, y); break;
+        case Instruction::SUBN_RR: inst_subnrr(x, y); break;
+
+        case Instruction::SNE_RR: inst_snerr(x, y); break;
+        case Instruction::LD_IA: inst_ldia(addr); break;
+        case Instruction::JP_V0A: inst_jpv0a(addr); break;
+        case Instruction::RND_RC: inst_rndrc(x, constant); break;
         default: throw std::runtime_error {"Couldn't execute instruction."};
         }
     }
@@ -124,10 +133,43 @@ namespace ch8 {
     void Processor::inst_orrr(byte regx, byte regy) { V[regx] |= V[regy]; }
     void Processor::inst_andrr(byte regx, byte regy) { V[regx] &= V[regy]; }
     void Processor::inst_xorrr(byte regx, byte regy) { V[regx] ^= V[regy]; }
+
     void Processor::inst_addrr(byte regx, byte regy) {
         word wregx {V[regx]}, wregy {V[regy]}; // Need to convert there to word length since they might overflow.
         wregx += wregy; // Overflow could have occured here (in the byte level).
         V[regx] = static_cast<byte>(wregx); // Extract the result.
         V[0x0F] = static_cast<byte>((wregx >> 8) & 0x0001); // Set an overflow flag.
+    }
+
+    void Processor::inst_subrr(byte regx, byte regy) {
+        if (V[regx] >= V[regy]) V[0x0F] = 1; // if register x is bigger than y, don't borrow (1 is inversed).
+        else V[0x0F] = 0; // else, if register is not bigger than y, borrow.
+        V[regx] -= V[regy];
+    }
+
+    void Processor::inst_shrrr(byte regx, byte) {
+        if (V[regx] == 0x01) V[0x0F] = 1;
+        else V[0x0F] = 0;
+        V[regx] >>= 1;
+    }
+
+    void Processor::inst_subnrr(byte regx, byte regy) {
+        if (V[regy] >= V[regx]) V[0x0F] = 1; // if register x is bigger than y, don't borrow (1 is inversed).
+        else V[0x0F] = 0; // else, if register is not bigger than y, borrow.
+        V[regx] = V[regy] - V[regx];
+    }
+
+    void Processor::inst_shlrr(byte regx, byte) {
+        if (V[regx] >> 7 == 1) V[0x0F] = 1;
+        else V[0x0F] = 0;
+        V[regx] <<= 1;
+    }
+
+    void Processor::inst_snerr(byte regx, byte regy) { if (V[regx] != V[regy]) PC += 2; }
+    void Processor::inst_ldia(addr address) { I = address; }
+    void Processor::inst_jpv0a(addr address) { PC = address + V[0x00]; }
+
+    void Processor::inst_rndrc(byte reg, byte constant) {
+        // Implement random device in processor.
     }
 }

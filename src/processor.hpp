@@ -43,6 +43,15 @@ namespace ch8 {
         void inst_andrr(byte, byte); // Performs a bitwise AND operation on both registers.
         void inst_xorrr(byte, byte); // Performs a bitwise XOR operation on both registers.
         void inst_addrr(byte, byte); // Adds register content to another register.
+        void inst_subrr(byte, byte); // Subtracts register from another register.
+        void inst_shrrr(byte, byte); // Shifts first register right by one digit.
+        void inst_subnrr(byte, byte); // Subtracts register from another register, inverse.
+        void inst_shlrr(byte, byte); // Shifts first register left by one digit.
+
+        void inst_snerr(byte, byte); // Skips next instruction if NOT equal.
+        void inst_ldia(addr); // Loads a certain constant address to I register.
+        void inst_jpv0a(addr); // Jumps to a certain address offset by register V0.
+        void inst_rndrc(byte, byte); // Assign random value to register, limited to constant.
 
         bool still_running {true};
         static bool jump_inst(Instruction); // Checks if this is a jump instruction.
