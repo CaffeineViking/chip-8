@@ -4,41 +4,9 @@
 #include <iomanip>
 
 namespace ch8 {
-    void Processor::execute(Instruction inst, byte inst_upper, byte inst_lower) {
-        byte x = Interpreter::parse_argument(Argument::X, inst_upper, inst_lower);
-        byte y = Interpreter::parse_argument(Argument::Y, inst_upper, inst_lower);
-        word addr = Interpreter::parse_argument(Argument::ADDRESS, inst_upper, inst_lower);
-        byte constant = Interpreter::parse_argument(Argument::CONSTANT, inst_upper, inst_lower);
-
-        switch (inst) {
-        case Instruction::SYS_A: break;
-        case Instruction::CLS: inst_cls(); break;
-        case Instruction::RET: inst_ret(); break;
-        case Instruction::JP_A: inst_jpa(addr); break;
-        case Instruction::CALL_A: inst_calla(addr); break;
-
-        case Instruction::SE_RC: inst_serc(x, constant); break;
-        case Instruction::SNE_RC: inst_snerc(x, constant); break;
-        case Instruction::SE_RR: inst_serr(x, y); break;
-        case Instruction::LD_RC: inst_ldrc(x, constant); break;
-        case Instruction::ADD_RC: inst_addrc(x, constant); break;
-
-        case Instruction::LD_RR: inst_ldrr(x, y); break;
-        case Instruction::OR_RR: inst_orrr(x, y); break;
-        case Instruction::AND_RR: inst_andrr(x, y); break;
-        case Instruction::XOR_RR: inst_xorrr(x, y); break;
-        case Instruction::ADD_RR: inst_addrr(x, y); break;
-        case Instruction::SUB_RR: inst_subrr(x, y); break;
-        case Instruction::SHR_RR: inst_shrrr(x, y); break;
-        case Instruction::SHL_RR: inst_shlrr(x, y); break;
-        case Instruction::SUBN_RR: inst_subnrr(x, y); break;
-
-        case Instruction::SNE_RR: inst_snerr(x, y); break;
-        case Instruction::LD_IA: inst_ldia(addr); break;
-        case Instruction::JP_V0A: inst_jpv0a(addr); break;
-        case Instruction::RND_RC: inst_rndrc(x, constant); break;
-        default: throw std::runtime_error {"Couldn't execute instruction."};
-        }
+    Processor::Processor() {
+        std::random_device rnd; // Hardware based RNG, expensive.
+        random_generator.seed(rnd()); // Software based now, cheap!
     }
 
     void Processor::step(Memory& memory) {
@@ -74,6 +42,52 @@ namespace ch8 {
         }
     }
 
+    void Processor::execute(Instruction inst, byte inst_upper, byte inst_lower) {
+        byte x = Interpreter::parse_argument(Argument::X, inst_upper, inst_lower);
+        byte y = Interpreter::parse_argument(Argument::Y, inst_upper, inst_lower);
+        word addr = Interpreter::parse_argument(Argument::ADDRESS, inst_upper, inst_lower);
+        byte constant = Interpreter::parse_argument(Argument::CONSTANT, inst_upper, inst_lower);
+
+        switch (inst) {
+        case Instruction::SYS_A: break;
+        case Instruction::CLS: inst_cls(); break;
+        case Instruction::RET: inst_ret(); break;
+        case Instruction::JP_A: inst_jpa(addr); break;
+        case Instruction::CALL_A: inst_calla(addr); break;
+
+        case Instruction::SE_RC: inst_serc(x, constant); break;
+        case Instruction::SNE_RC: inst_snerc(x, constant); break;
+        case Instruction::SE_RR: inst_serr(x, y); break;
+        case Instruction::LD_RC: inst_ldrc(x, constant); break;
+        case Instruction::ADD_RC: inst_addrc(x, constant); break;
+
+        case Instruction::LD_RR: inst_ldrr(x, y); break;
+        case Instruction::OR_RR: inst_orrr(x, y); break;
+        case Instruction::AND_RR: inst_andrr(x, y); break;
+        case Instruction::XOR_RR: inst_xorrr(x, y); break;
+        case Instruction::ADD_RR: inst_addrr(x, y); break;
+        case Instruction::SUB_RR: inst_subrr(x, y); break;
+        case Instruction::SHR_RR: inst_shrrr(x, y); break;
+        case Instruction::SHL_RR: inst_shlrr(x, y); break;
+        case Instruction::SUBN_RR: inst_subnrr(x, y); break;
+
+        case Instruction::SNE_RR: inst_snerr(x, y); break;
+        case Instruction::LD_IA: inst_ldia(addr); break;
+        case Instruction::JP_V0A: inst_jpv0a(addr); break;
+        case Instruction::RND_RC: inst_rndrc(x, constant); break;
+        case Instruction::DRW_RRC: inst_drwrrc(x, y, constant & 0x0F); break;
+        default: throw std::runtime_error {"Couldn't execute instruction."};
+        }
+    }
+
+    bool Processor::jump_inst(Instruction inst) {
+        switch (inst) {
+            case Instruction::JP_A: case Instruction::JP_V0A:
+            case Instruction::CALL_A: case Instruction::RET: return true;
+            default: return false;
+        }
+    }
+
     void Processor::dump() const {
         std::cout << "PC: " << std::setw(4) << std::hex << PC
                   << ", SP: " << std::setw(4) << std::hex << static_cast<short>(SP) << ',' << std::endl
@@ -96,14 +110,6 @@ namespace ch8 {
                   << "VF: " << std::setw(4) << std::hex << static_cast<short>(V[0xF])
                   << ", ST: " << std::setw(4) << std::hex << static_cast<short>(ST)
                   << ", DT: " << std::setw(4) << std::hex << static_cast<short>(DT) << std::endl;
-    }
-
-    bool Processor::jump_inst(Instruction inst) {
-        switch (inst) {
-            case Instruction::JP_A: case Instruction::JP_V0A:
-            case Instruction::CALL_A: case Instruction::RET: return true;
-            default: return false;
-        }
     }
 
     void Processor::inst_cls() {
@@ -170,6 +176,11 @@ namespace ch8 {
     void Processor::inst_jpv0a(addr address) { PC = address + V[0x00]; }
 
     void Processor::inst_rndrc(byte reg, byte constant) {
-        // Implement random device in processor.
+        byte random_number = random_udistribution(random_generator);
+        random_number &= constant; // By performing an AND, one can limit the generated range.
+        V[reg] = random_number; // Assign it to the specified register.
+    }
+
+    void Processor::inst_drwrrc(byte regx, byte regy, byte length) {
     }
 }

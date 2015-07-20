@@ -1,6 +1,7 @@
 #ifndef CH8_PROCESSOR_HPP
 #define CH8_PROCESSOR_HPP
 
+#include <random>
 #include <stdexcept>
 #include "definitions.hpp"
 #include "memory.hpp"
@@ -16,6 +17,7 @@ namespace ch8 {
             ST, DT, PC, I, SP
         };
 
+        Processor();
         bool running() const { return still_running; } // Is the program still running?
         const byte* display_buffer() const { return screen_buffer; } // Needs to be drawn for real later.
         bool sound_issued() const { return ST != 0; } // Upper abstraction needs to sound beep.
@@ -27,6 +29,27 @@ namespace ch8 {
         void step(Memory&); // Steps the processor state forward.
 
     private:
+        std::mt19937 random_generator; // Will be given a random seed from device.
+        std::uniform_int_distribution<byte> random_udistribution {0, 255}; // Should output uniformally.
+
+        bool still_running {true};
+        static bool jump_inst(Instruction); // Checks if this is a jump instruction.
+        byte V[16] = {0}; // General purpose registers (8-bits), V0 - VF.
+        byte ST {0}, DT {0}; // Special purpose registers, sound and delay timers.
+
+        static constexpr addr PROGRAM_INIT {0x200};
+        addr PC {PROGRAM_INIT}, I {0x0000}; // Program Counter and address storage register I.
+        byte SP {0x00}; // Stack pointer, only need 16 places (officially) so 8-bits suffice.
+
+        static constexpr std::size_t STACK_SIZE {16 + 1}; // + 1 since first is never used.
+        word stack[STACK_SIZE] = {0}; // The 16-bit sized stack places, usually contains return addresses.
+
+        static constexpr std::size_t WIDTH {64};
+        static constexpr std::size_t HEIGHT {32};
+        byte screen_buffer[WIDTH * HEIGHT];  // The 64x32 sized screen needs to store its state. Instructions
+                                      // affecting the screen modify this, higher implementation will use this.
+                                      // A byte of 0x00 represents no color, 0x01 represents color.
+
         void inst_cls(); // Clear screen.
         void inst_ret(); // Returns to the address pointed by SP.
         void inst_jpa(addr); // Jumps to the target address.
@@ -52,24 +75,7 @@ namespace ch8 {
         void inst_ldia(addr); // Loads a certain constant address to I register.
         void inst_jpv0a(addr); // Jumps to a certain address offset by register V0.
         void inst_rndrc(byte, byte); // Assign random value to register, limited to constant.
-
-        bool still_running {true};
-        static bool jump_inst(Instruction); // Checks if this is a jump instruction.
-        byte V[16] = {0}; // General purpose registers (8-bits), V0 - VF.
-        byte ST {0}, DT {0}; // Special purpose registers, sound and delay timers.
-
-        static constexpr addr PROGRAM_INIT {0x200};
-        addr PC {PROGRAM_INIT}, I {0x0000}; // Program Counter and address storage register I.
-        byte SP {0x00}; // Stack pointer, only need 16 places (officially) so 8-bits suffice.
-
-        static constexpr std::size_t STACK_SIZE {16 + 1}; // + 1 since first is never used.
-        word stack[STACK_SIZE] = {0}; // The 16-bit sized stack places, usually contains return addresses.
-
-        static constexpr std::size_t WIDTH {64};
-        static constexpr std::size_t HEIGHT {32};
-        byte screen_buffer[WIDTH * HEIGHT];  // The 64x32 sized screen needs to store its state. Instructions
-                                      // affecting the screen modify this, higher implementation will use this.
-                                      // A byte of 0x00 represents no color, 0x01 represents color.
+        void inst_drwrrc(byte, byte, byte); // Draw sprite from memory, at register location.
     };
 }
 

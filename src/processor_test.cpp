@@ -258,20 +258,7 @@ TEST_CASE("JP jumps to target address plus offset.", "[processor, inst_jpv0a]") 
 TEST_CASE("RND assigns a random value to register, limited to constant.", "[processor, inst_rndrc]") {
     ch8::Processor p;
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::RND_RC, 0xC0, 0x0F)); // RND V0, 0x0F (0-15).
-    REQUIRE(p.register_state(ch8::Processor::Register::V0) >= 15); // Needs to be between 0 and 15.
-    REQUIRE_NOTHROW(p.execute(ch8::Instruction::RND_RC, 0xC0, 0x0F)); // RND V0, 0x0F (0-15).
-    REQUIRE(p.register_state(ch8::Processor::Register::V0) >= 15); // Needs to be between 0 and 15.
-    REQUIRE_NOTHROW(p.execute(ch8::Instruction::RND_RC, 0xC0, 0x0F)); // RND V0, 0x0F (0-15).
-    REQUIRE(p.register_state(ch8::Processor::Register::V0) >= 15); // Needs to be between 0 and 15.
-    REQUIRE_NOTHROW(p.execute(ch8::Instruction::RND_RC, 0xC0, 0x0F)); // RND V0, 0x0F (0-15).
-    REQUIRE(p.register_state(ch8::Processor::Register::V0) >= 15); // Needs to be between 0 and 15.
-
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) <= 15); // Needs to be between 0 and 15.
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::RND_RC, 0xC0, 0xFF)); // RND V0, 0xFF (0-255).
-    REQUIRE(p.register_state(ch8::Processor::Register::V0) >= 255); // Needs to be between 0 and 255.
-    REQUIRE_NOTHROW(p.execute(ch8::Instruction::RND_RC, 0xC0, 0xFF)); // RND V0, 0xFF (0-255).
-    REQUIRE(p.register_state(ch8::Processor::Register::V0) >= 255); // Needs to be between 0 and 255.
-    REQUIRE_NOTHROW(p.execute(ch8::Instruction::RND_RC, 0xC0, 0xFF)); // RND V0, 0xFF (0-255).
-    REQUIRE(p.register_state(ch8::Processor::Register::V0) >= 255); // Needs to be between 0 and 255.
-    REQUIRE_NOTHROW(p.execute(ch8::Instruction::RND_RC, 0xC0, 0xFF)); // RND V0, 0xFF (0-255).
-    REQUIRE(p.register_state(ch8::Processor::Register::V0) >= 255); // Needs to be between 0 and 255.
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) <= 255); // Needs to be between 0 and 255.
 }
