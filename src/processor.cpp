@@ -84,6 +84,11 @@ namespace ch8 {
         case Instruction::LD_DR: inst_lddr(x); break;
         case Instruction::LD_SR: inst_ldsr(x); break;
         case Instruction::ADD_IR: inst_addir(x); break;
+
+        case Instruction::LD_FR: inst_ldfr(x); break;
+        case Instruction::LD_BR: inst_ldbr(x); break;
+        case Instruction::LD_IAR: inst_ldiar(x); break;
+        case Instruction::LD_RAI: inst_ldrai(x); break;
         case Instruction::EXIT: still_running = false; break;
         default: throw std::runtime_error {"Couldn't execute instruction."};
         }
@@ -233,4 +238,16 @@ namespace ch8 {
     void Processor::inst_lddr(byte reg) { DT = V[reg]; }
     void Processor::inst_ldsr(byte reg) { ST = V[reg]; }
     void Processor::inst_addir(byte reg) { I += V[reg]; }
+
+    void Processor::inst_ldfr(byte reg) {
+    }
+
+    void Processor::inst_ldbr(byte reg) {
+    }
+
+    void Processor::inst_ldiar(byte reg) {
+    }
+
+    void Processor::inst_ldrai(byte reg) {
+    }
 }

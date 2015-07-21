@@ -97,6 +97,11 @@ namespace ch8 {
         void inst_lddr(byte); // Loads the value of register into delay timer.
         void inst_ldsr(byte); // Loads the value of register into sound timer.
         void inst_addir(byte); // Adds value of register to I address register.
+
+        void inst_ldfr(byte); // Loads address of font stored in register to I.
+        void inst_ldbr(byte); // Store BCD representation of number in memory starting at I.
+        void inst_ldiar(byte); // Store registers V0 - VX to memory starting at address I.
+        void inst_ldrai(byte); // Load registers V0 - Vx with values stored in I.
     };
 }
 
