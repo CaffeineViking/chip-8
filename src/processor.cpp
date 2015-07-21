@@ -97,7 +97,7 @@ namespace ch8 {
     bool Processor::jump_inst(Instruction inst) {
         switch (inst) {
             case Instruction::JP_A: case Instruction::JP_V0A:
-            case Instruction::CALL_A: case Instruction::RET: return true;
+            case Instruction::CALL_A: return true;
             default: return false;
         }
     }

@@ -46,8 +46,13 @@ int main(int argc, char** argv) {
     do {
         processor.dump();
         ch8::addr program_counter {processor.register_state(ch8::Processor::Register::PC)};
-        print_display(processor.display_buffer());
         print_instruction(memory, program_counter);
+
+        if (input == 'd') print_display(processor.display_buffer());
+        if (input == 't') { // Emulates 60 Hz timer interrupt.
+            while (processor.delay_issued()) processor.tick_delay();
+            while (processor.sound_issued()) processor.tick_sound();
+        }
 
         processor.step();
         input = std::getchar();
