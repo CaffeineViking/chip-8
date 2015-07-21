@@ -347,3 +347,49 @@ TEST_CASE("DRW draws a sprite from memory to the display buffer.", "[processor, 
     REQUIRE(dbuffer[9 * 64 + 8 + 4] == 1);
     REQUIRE(p.register_state(ch8::Processor::Register::VF) == 0x00); // Collision should NOT have happened.
 }
+
+TEST_CASE("SKP skips next instruction if key is pressed.", "[processor, inst_skpr]") {
+    ch8::Processor p {m};
+    p.key_pressed(0x0C); // C is pressed on the hex keyboard.
+    REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // Default PC location.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x0B)); // LD V0, 0x0B.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::SKP_R, 0xE0, 0x9E)); // SKP V0 (V0 = 0xB).
+    REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // Should remain unchanged.
+
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x0C)); // LD V0, 0x0C.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::SKP_R, 0xE0, 0x9E)); // SKP V0 (V0 = 0xB).
+    REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x202); // Should increment to next instruction.
+                                                                      // Note: will increment PC by 4 later.
+}
+
+TEST_CASE("SKNP skips next instruction if key is NOT pressed.", "[processor, inst_sknpr]") {
+    ch8::Processor p {m};
+    p.key_pressed(0x0C); // C is pressed on the hex keyboard.
+    REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // Default PC location.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x0B)); // LD V0, 0x0B.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::SKNP_R, 0xE0, 0xA1)); // SKNP V0 (V0 = 0xB).
+    REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x202); // Should increment to next instruction.
+                                                                      // Note: will increment PC by 4 later.
+
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x0C)); // LD V0, 0x0C.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::SKNP_R, 0xE0, 0xA1)); // SKNP V0 (V0 = 0xC).
+    REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x202); // Should remain unchanged.
+}
+
+TEST_CASE("LD loads the value of DT to GP register.", "[processor, inst_ldrd]") {
+    ch8::Processor p {m};
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00); // Zero per- default.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x42)); // LD V0, 0x42.
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x42); // Should contain the meaning of life.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RD, 0xF0, 0x07)); // LD V0, DT
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00); // DT is usually 0x00.
+}
+
+TEST_CASE("LD loads the identifier of the pressed key.", "[processor, inst_ldrk]") {
+    ch8::Processor p {m};
+    p.key_pressed(0x0C); // C is pressed on the hex keyboard.
+    REQUIRE(p.register_state(ch8::Processor::Register::PC) == 0x200); // Default PC location.
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x00); // Zero per- default.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RK, 0xF0, 0x0A)); // LD V0, K
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x0C); // Since 0xC was pressed.
+}

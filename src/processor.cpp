@@ -77,6 +77,13 @@ namespace ch8 {
         case Instruction::JP_V0A: inst_jpv0a(addr); break;
         case Instruction::RND_RC: inst_rndrc(x, constant); break;
         case Instruction::DRW_RRC: inst_drwrrc(x, y, constant & 0x0F); break;
+        case Instruction::SKP_R: inst_skpr(x); break;
+        case Instruction::SKNP_R: inst_sknpr(x); break;
+        case Instruction::LD_RD: inst_ldrd(x); break;
+        case Instruction::LD_RK: inst_ldrk(x); break;
+        case Instruction::LD_DR: inst_lddr(x); break;
+        case Instruction::LD_SR: inst_ldsr(x); break;
+        case Instruction::ADD_IR: inst_addir(x); break;
         case Instruction::EXIT: still_running = false; break;
         default: throw std::runtime_error {"Couldn't execute instruction."};
         }
@@ -203,4 +210,27 @@ namespace ch8 {
         if (collided) V[0x0F] = 1;
         else V[0x0F] = 0;
     }
+
+    void Processor::inst_skpr(byte reg) { if (key_states[V[reg]] == true) PC += 2; }
+    void Processor::inst_sknpr(byte reg) { if (key_states[V[reg]] != true) PC += 2; }
+    void Processor::inst_ldrd(byte reg) { V[reg] = DT; }
+    void Processor::inst_ldrk(byte reg) {
+        // Search if any keys are pressed, assigning
+        // the register to the keys identifier and completing.
+        for (byte i {0}; i < KEYS; ++i) {
+            if (key_states[i] == true) {
+                V[reg] = i;
+                return;
+            }
+        }
+
+        // If no keys are pressed,
+        // keep repeating this instruction
+        // until it does (-2 runs this again).
+        PC -= 2;
+    }
+
+    void Processor::inst_lddr(byte reg) { DT = V[reg]; }
+    void Processor::inst_ldsr(byte reg) { ST = V[reg]; }
+    void Processor::inst_addir(byte reg) { I += V[reg]; }
 }

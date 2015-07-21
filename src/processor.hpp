@@ -19,19 +19,24 @@ namespace ch8 {
 
         Processor(Memory&); // Always needs main memory.
         bool running() const { return still_running; } // Is the program still running?
-        const byte* display_buffer() const { return screen_buffer; } // Needs to be drawn for real later.
-        bool sound_issued() const { return ST != 0; } // Upper abstraction needs to sound beep.
-        bool delay_issued() const { return DT != 0; } // Both timers need to be counted down.
-        word register_state(Register) const; // Returns the state of a register (dump), for debugging.
-        void dump() const; // Dumps entire state to stdout.
-
         void execute(Instruction, byte, byte); // Executes the instruction with arguments given.
         void step(); // Steps the processor state forward.
 
-    private:
-        std::mt19937 random_generator; // Will be given a random seed from device.
-        std::uniform_int_distribution<byte> random_udistribution {0, 255}; // Should output uniformally.
+        // Outputs to emulated IO.
+        const byte* display_buffer() const { return screen_buffer; } // Needs to be drawn for real later.
+        bool sound_issued() const { return ST != 0; } // Upper abstraction needs to sound beep.
+        bool delay_issued() const { return DT != 0; } // Both timers need to be counted down.
 
+        // Inputs from emulated IO.
+        void key_pressed(byte k) { key_states[k] = true; } // Key has been pressed.
+        void key_released(byte k) { key_states[k] = false; } // Key has been released.
+        void tick_sound() { --ST; } // Issued every 60 Hz whenever sound state is non-zero.
+        void tick_delay() { --DT; } // Issued every 60 Hz whenever delay state is non-zero.
+
+        word register_state(Register) const; // Returns the state of a register (dump), for debugging.
+        void dump() const; // Dumps entire state to stdout.
+
+    private:
         bool still_running {true};
         Memory& memory; // Reference to main memory.
         static bool jump_inst(Instruction); // Checks if this is a jump instruction.
@@ -45,12 +50,19 @@ namespace ch8 {
         static constexpr std::size_t STACK_SIZE {16 + 1}; // + 1 since first is never used.
         word stack[STACK_SIZE] = {0}; // The 16-bit sized stack places, usually contains return addresses.
 
+        std::mt19937 random_generator; // Will be given a random seed from device.
+        std::uniform_int_distribution<byte> random_udistribution {0, 255}; // Should output uniformally.
+
+        static constexpr byte KEYS {16}; // The Chip-8 has officially 16 keys.
+        bool key_states[KEYS] = {0}; // A key is either pressed or not.
+
         static constexpr std::size_t WIDTH {64};
         static constexpr std::size_t HEIGHT {32};
         byte screen_buffer[WIDTH * HEIGHT];  // The 64x32 sized screen needs to store its state. Instructions
                                              // affecting the screen modify this, higher implementation will use 
                                              // this. A zero represents no color, a one represents color.
 
+        // Shitload of instructions below.
         void inst_cls(); // Clear screen.
         void inst_ret(); // Returns to the address pointed by SP.
         void inst_jpa(addr); // Jumps to the target address.
@@ -77,6 +89,14 @@ namespace ch8 {
         void inst_jpv0a(addr); // Jumps to a certain address offset by register V0.
         void inst_rndrc(byte, byte); // Assign random value to register, limited to constant.
         void inst_drwrrc(byte, byte, byte); // Draw sprite from memory, at register location.
+
+        void inst_skpr(byte); // Skips next instruction if key is pressed.
+        void inst_sknpr(byte); // Do NOT skip next instruction if key is pressed.
+        void inst_ldrd(byte); // Loads value of register to delay timer.
+        void inst_ldrk(byte); // Load the identifier of the pressed key.
+        void inst_lddr(byte); // Loads the value of register into delay timer.
+        void inst_ldsr(byte); // Loads the value of register into sound timer.
+        void inst_addir(byte); // Adds value of register to I address register.
     };
 }
 

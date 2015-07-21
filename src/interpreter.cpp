@@ -5,7 +5,7 @@ namespace ch8 {
         byte upper_identifier = inst_upper >> 4; // First nibble never has mangled arguments.
         byte lower_identifier = inst_lower & 0x0F; // Last nibble identifies variants of inst.
 
-        if (inst_upper == 0x00 && inst_lower == 0x00) return Instruction::EXIT;
+        if (inst_upper == 0x00 && inst_lower == 0xFD) return Instruction::EXIT;
         else if (inst_upper == 0x00 && inst_lower == 0xE0) return Instruction::CLS;
         else if (inst_upper == 0x00 && inst_lower == 0xEE) return Instruction::RET;
         else if (upper_identifier == 0x00) return Instruction::SYS_A;

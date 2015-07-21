@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 
 #include "memory.hpp"
 #include "processor.hpp"
@@ -18,17 +19,28 @@ void print_display(const ch8::byte* buffer) {
     }
 }
 
-int main() {
-    // Simple for loop (equivalent) where
-    // V1 is incremented until reaching V0.
-    const ch8::byte program[] =
-    {0x60, 0x0A, 0x61, 0x00, // LD V0, 10; LD V1, 0
-     0x71, 0x01, 0x00, 0xE0, 0xA2, 0x12, 0xD1, 0x01, // ADD V1, 1; CLS; LD I, 0x20E; DRW V1, V0, 2
-     0x50, 0x10, 0x12, 0x04, // SE V0, V1; JP 0x204
-     0x00, 0x00, 0x18}; // 0b00010000
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0]
+                  << " <rom path>" << std::endl;
+        return 1;
+    }
 
-    ch8::Memory memory {program, sizeof(program)};
+    char* program;
+    std::size_t program_size;
+    std::ifstream program_stream {argv[1], std::ios::binary};
+    if (program_stream) {
+        program_stream.seekg(0, std::ios::end);
+        program_size = program_stream.tellg();
+        program_stream.seekg(0, std::ios::beg);
+        program = new char[program_size];
+        program_stream.read(program, program_size);
+    } program_stream.close();
+
+    std::cout << argv[1] << " loaded, occupying " << program_size << " bytes." << std::endl;
+    ch8::Memory memory {reinterpret_cast<ch8::byte*>(program), program_size};
     ch8::Processor processor {memory};
+    delete[] program; // Program already copied.
 
     char input;
     do {
