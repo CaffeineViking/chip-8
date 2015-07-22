@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 #include "definitions.hpp"
+#include "interpreter.hpp"
 
 namespace ch8 {
     class Memory {
@@ -16,6 +17,7 @@ namespace ch8 {
     private:
         static constexpr std::size_t SIZE {0x1000}; // 4096 bytes of memory.
         enum class Limit : addr {
+            FONT = Interpreter::FONT_SIZE, // Limit of font, in interpreter space but valid read location.
             INTERPRETER = 0x200, // Memory locations below 0x200 are reserved for the interpreter.
             PROGRAM = SIZE // The rest of the memory is for the program, but only up to addresss 0x0FFF.
         };

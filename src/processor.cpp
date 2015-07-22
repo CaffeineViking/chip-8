@@ -240,6 +240,8 @@ namespace ch8 {
     void Processor::inst_addir(byte reg) { I += V[reg]; }
 
     void Processor::inst_ldfr(byte reg) {
+        if (V[reg] > 0x0F) return; // No font for something outside 0-F.
+        else I = V[reg] * Interpreter::FONT_HEIGHT;
     }
 
     void Processor::inst_ldbr(byte reg) {

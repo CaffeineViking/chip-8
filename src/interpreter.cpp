@@ -54,4 +54,9 @@ namespace ch8 {
 
         return 0xC0DE;
     }
+
+    constexpr byte Interpreter::font[FONT_SIZE];
+    const byte* Interpreter::retrieve_font() {
+        return font;
+    }
 }

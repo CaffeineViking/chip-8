@@ -20,11 +20,15 @@ TEST_CASE("Writing/reading memory.", "[memory, reading, writing]") {
     REQUIRE_THROWS(m.write(0x1000, 0x42)); // Should fail, outside program space.
 
     // Same arguments as above.
-    REQUIRE_THROWS(m.read(0x000));
     REQUIRE_THROWS(m.read(0x1FF));
     REQUIRE_NOTHROW(m.read(0x200));
     REQUIRE_NOTHROW(m.read(0xFFF));
     REQUIRE_THROWS(m.read(0x1000));
+
+    REQUIRE_NOTHROW(m.read(0x000)); // Font space, should be able to read.
+    REQUIRE_NOTHROW(m.read(0x4F)); // Still font space, should be able to read.
+    REQUIRE_THROWS(m.read(0x50)); // Invalid interpreter space, shouldn't be valid.
+
 
     // Serves as a test for both reading and writing, writing should result in the value 0x42 and
     // reading from the same location should be 0x42. If anything else, something is wrong.
@@ -41,4 +45,10 @@ TEST_CASE("Copying existing program to memory.", "[memory, copying]") {
     REQUIRE(memory.read(0x201) == 0xDE);
     REQUIRE(memory.read(0x202) == 0xBE);
     REQUIRE(memory.read(0x203) == 0xEF);
+}
+
+TEST_CASE("Making sure font is copied.", "[memory, font]") {
+    ch8::Memory memory {nullptr, 0}; // Empty memory should still have font.
+    REQUIRE(memory.read(0x000) == 0xF0); // First part of 0.
+    REQUIRE(memory.read(0x04f) == 0x80); // Last part of F.
 }

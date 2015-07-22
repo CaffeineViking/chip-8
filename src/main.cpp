@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <string>
 
 #include "memory.hpp"
 #include "processor.hpp"
@@ -42,21 +43,21 @@ int main(int argc, char** argv) {
     ch8::Processor processor {memory};
     delete[] program; // Program already copied.
 
-    char input;
+    std::string input;
     do {
         processor.dump();
         ch8::addr program_counter {processor.register_state(ch8::Processor::Register::PC)};
         print_instruction(memory, program_counter);
 
-        if (input == 'd') print_display(processor.display_buffer());
-        if (input == 't') { // Emulates 60 Hz timer interrupt.
+        if (input == "display") print_display(processor.display_buffer());
+        if (input == "tick") { // Emulates 60 Hz timer interrupt.
             while (processor.delay_issued()) processor.tick_delay();
             while (processor.sound_issued()) processor.tick_sound();
         }
 
+        std::getline(std::cin, input);
         processor.step();
-        input = std::getchar();
-    } while(input != 'q' && processor.running());
+    } while(input != "quit" && processor.running());
 
     return 0;
 }

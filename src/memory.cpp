@@ -3,8 +3,11 @@
 
 namespace ch8 {
     Memory::Memory(const byte* program, std::size_t program_size) {
+        // Copy given external program to local main memory, placing it in the correct location.
         std::memcpy(contents + static_cast<addr>(Limit::INTERPRETER), program, program_size);
-        // Interpreter data needs to be written below...
+
+        // Copy the interpreters font to main memory, not modifying the original.
+        std::memcpy(contents + 0x000, Interpreter::retrieve_font(), Interpreter::FONT_SIZE);
     }
 
     bool Memory::valid(addr address) const{
@@ -15,7 +18,9 @@ namespace ch8 {
     }
 
     byte Memory::read(addr address) const {
-        if (valid(address)) return contents[address];
+        addr font_begin {0x000};
+        addr font_end {static_cast<addr>(Limit::FONT) - 1};
+        if (valid(address) || within(address, font_begin, font_end)) return contents[address];
         else throw std::out_of_range {"Couldn't read data, invalid memory address."};
     }
 
