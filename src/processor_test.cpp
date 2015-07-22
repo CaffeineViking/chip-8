@@ -393,3 +393,29 @@ TEST_CASE("LD loads the identifier of the pressed key.", "[processor, inst_ldrk]
     REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RK, 0xF0, 0x0A)); // LD V0, K
     REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x0C); // Since 0xC was pressed.
 }
+
+TEST_CASE("LD stores consecutive registers to memory.", "[processor, inst_ldiar]") {
+    ch8::Processor p {m};
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_IA, 0xA5, 0x00)); // LD I, 0x500.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x60, 0x0A)); // LD V0, 0x0A.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x61, 0x0B)); // LD V1, 0x0B.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RC, 0x62, 0x0C)); // LD V2, 0x0C.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_IAR, 0xF2, 0x55)); // LD [I], V2.
+
+    REQUIRE(m.read(p.register_state(ch8::Processor::Register::I)) == 0x0A);
+    REQUIRE(m.read(p.register_state(ch8::Processor::Register::I) + 1) == 0x0B);
+    REQUIRE(m.read(p.register_state(ch8::Processor::Register::I) + 2) == 0x0C);
+}
+
+TEST_CASE("LD loads consecutive locations from memory to registers.", "[processor, inst_ldrai]") {
+    ch8::Processor p {m};
+    m.write(0x500, 0x0D);
+    m.write(0x501, 0x0E);
+    m.write(0x502, 0x0F);
+
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_IA, 0xA5, 0x00)); // LD I, 0x500.
+    REQUIRE_NOTHROW(p.execute(ch8::Instruction::LD_RAI, 0xF2, 0x65)); // LD V2, [I].
+    REQUIRE(p.register_state(ch8::Processor::Register::V0) == 0x0D);
+    REQUIRE(p.register_state(ch8::Processor::Register::V1) == 0x0E);
+    REQUIRE(p.register_state(ch8::Processor::Register::V2) == 0x0F);
+}

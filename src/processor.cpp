@@ -246,8 +246,18 @@ namespace ch8 {
     }
 
     void Processor::inst_ldiar(byte reg) {
+        // Store value of register V0 - Vx
+        // to locations I through I + x.
+        for (byte i {0}; i <= reg; ++i) {
+            memory.write(I + i, V[i]);
+        }
     }
 
     void Processor::inst_ldrai(byte reg) {
+        // Load value of locations I to I + x
+        // into register V0 through Vx.
+        for (byte i {0}; i <= reg; ++i) {
+            V[i] = memory.read(I + i);
+        }
     }
 }
