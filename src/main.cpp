@@ -46,15 +46,15 @@ int main(int argc, char** argv) {
     std::string input;
     do {
         processor.dump();
-        ch8::addr program_counter {processor.register_state(ch8::Processor::Register::PC)};
-        print_instruction(memory, program_counter);
-
-        if (input == "display") print_display(processor.display_buffer());
-        if (input == "tick") { // Emulates 60 Hz timer interrupt.
+        if (input == "display") {
+            print_display(processor.display_buffer());
+        } else if (input == "tick") { // Emulates 60 Hz timer interrupt.
             while (processor.delay_issued()) processor.tick_delay();
             while (processor.sound_issued()) processor.tick_sound();
         }
 
+        ch8::addr program_counter {processor.register_state(ch8::Processor::Register::PC)};
+        print_instruction(memory, program_counter);
         std::getline(std::cin, input);
         processor.step();
     } while(input != "quit" && processor.running());
