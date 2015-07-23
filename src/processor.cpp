@@ -245,6 +245,9 @@ namespace ch8 {
     }
 
     void Processor::inst_ldbr(byte reg) {
+        memory.write(I, V[reg] / 100);
+        memory.write(I + 1, V[reg] % 100 / 10);
+        memory.write(I + 2, V[reg] % 10);
     }
 
     void Processor::inst_ldiar(byte reg) {
