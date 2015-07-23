@@ -51,6 +51,12 @@ int main(int argc, char** argv) {
         } else if (input == "tick") { // Emulates 60 Hz timer interrupt.
             while (processor.delay_issued()) processor.tick_delay();
             while (processor.sound_issued()) processor.tick_sound();
+        } else if (input == "press") {
+            std::cin >> input;
+            processor.key_pressed(std::stoi(input));
+        } else if (input == "release") {
+            std::cin >> input;
+            processor.key_released(std::stoi(input));
         }
 
         ch8::addr program_counter {processor.register_state(ch8::Processor::Register::PC)};
