@@ -1,23 +1,27 @@
 #include <iostream>
-#include <iomanip>
 #include <fstream>
-#include <string>
 
 #include "memory.hpp"
 #include "processor.hpp"
 #include "definitions.hpp"
 
-void print_instruction(const ch8::Memory& memory, ch8::addr program_counter) {
-    std::cout << "Next instruction: 0x" << std::setw(2) << std::setfill('0') << std::hex << static_cast<ch8::addr>(memory.read(program_counter))
-        << std::setw(2) << std::setfill('0') << std::hex << static_cast<ch8::addr>(memory.read(program_counter + 1)) << std::endl;
-}
+// Load ROM file to memory.
+ch8::Memory load(const char* path) {
+    char* program;
+    std::size_t program_size;
+    std::ifstream program_stream {path, std::ios::binary};
+    if (program_stream) {
+        program_stream.seekg(0, std::ios::end);
+        program_size = program_stream.tellg();
+        program_stream.seekg(0, std::ios::beg);
+        program = new char[program_size];
+        program_stream.read(program, program_size);
+    } program_stream.close();
 
-void print_display(const ch8::byte* buffer) {
-    for (std::size_t y {0}; y < 32; ++y) {
-        for (std::size_t x {0}; x < 64; ++x) {
-            std::cout << static_cast<unsigned>(buffer[x + y * 64]);
-        } std::cout << std::endl;
-    }
+    std::cout << path << " loaded, occupying " << program_size << " bytes." << std::endl;
+    ch8::Memory memory {reinterpret_cast<ch8::byte*>(program), program_size};
+    delete[] program; // Program already copied.
+    return memory; // Should use RVO semantics.
 }
 
 int main(int argc, char** argv) {
@@ -27,43 +31,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    char* program;
-    std::size_t program_size;
-    std::ifstream program_stream {argv[1], std::ios::binary};
-    if (program_stream) {
-        program_stream.seekg(0, std::ios::end);
-        program_size = program_stream.tellg();
-        program_stream.seekg(0, std::ios::beg);
-        program = new char[program_size];
-        program_stream.read(program, program_size);
-    } program_stream.close();
-
-    std::cout << argv[1] << " loaded, occupying " << program_size << " bytes." << std::endl;
-    ch8::Memory memory {reinterpret_cast<ch8::byte*>(program), program_size};
-    ch8::Processor processor {memory};
-    delete[] program; // Program already copied.
-
-    std::string input;
-    do {
-        processor.dump();
-        if (input == "display") {
-            print_display(processor.display_buffer());
-        } else if (input == "tick") { // Emulates 60 Hz timer interrupt.
-            while (processor.delay_issued()) processor.tick_delay();
-            while (processor.sound_issued()) processor.tick_sound();
-        } else if (input == "press") {
-            std::cin >> input;
-            processor.key_pressed(std::stoi(input));
-        } else if (input == "release") {
-            std::cin >> input;
-            processor.key_released(std::stoi(input));
-        }
-
-        ch8::addr program_counter {processor.register_state(ch8::Processor::Register::PC)};
-        print_instruction(memory, program_counter);
-        std::getline(std::cin, input);
-        processor.step();
-    } while(input != "quit" && processor.running());
-
+    ch8::Memory memory {load(argv[1])}; // Loads specified ROM with program.
+    ch8::Processor processor {memory}; // Processor needs to know about memory.
     return 0;
 }

@@ -27,8 +27,8 @@ program_INCLUDE_DIRS :=
 program_LIBRARY_DIRS :=
 program_LIBRARIES :=
 
-CPPFLAGS += $(foreach includedir, $(program_INCLUDE_DIRS), -I$(includedir))
-LDFLAGS += $(foreach librarydir, $(program_LIBRARY_DIRS), -L$(librarydir))
+CPPFLAGS += $(foreach includedir, $(program_INCLUDE_DIRS), -I$(includedir)) $(shell sdl2-config --cflags)
+LDFLAGS += $(foreach librarydir, $(program_LIBRARY_DIRS), -L$(librarydir)) $(shell sdl2-config --libs)
 LDFLAGS += $(foreach library, $(program_LIBRARIES), -l$(library))
 
 CFLAGS += -std=c11 -Wall -Wextra -pedantic
