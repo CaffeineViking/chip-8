@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <SDL.h>
 
 #include "memory.hpp"
 #include "processor.hpp"
@@ -27,11 +29,38 @@ ch8::Memory load(const char* path) {
 int main(int argc, char** argv) {
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0]
-                  << " <rom path>" << std::endl;
+            << " <rom path>" << std::endl;
         return 1;
     }
 
     ch8::Memory memory {load(argv[1])}; // Loads specified ROM with program.
     ch8::Processor processor {memory}; // Processor needs to know about memory.
+
+    if(SDL_Init(SDL_INIT_VIDEO) != 0) {
+        std::cerr << "SDL_Init failed: "
+            << SDL_GetError() << std::endl;
+        return 1;
+    }
+
+    SDL_Window* window {SDL_CreateWindow("chip-8 emulator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 320, 0)};
+    if (window == nullptr) {
+        std::cerr << "SDL_CreateWindow failed: "
+            << SDL_GetError() << std::endl;
+        SDL_Quit();
+        return 1;
+    }
+
+    SDL_Renderer* renderer {SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)};
+    if (renderer == nullptr) {
+        std::cerr << "SDL_CreateRenderer failed: "
+            << SDL_GetError() << std::endl;
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
     return 0;
 }
