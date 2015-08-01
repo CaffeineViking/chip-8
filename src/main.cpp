@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    SDL_Window* window {SDL_CreateWindow("chip-8 emulator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 320, 0)};
+    SDL_Window* window {SDL_CreateWindow("chip-8", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 320, 0)};
     if (window == nullptr) {
         std::cerr << "SDL_CreateWindow failed: "
             << SDL_GetError() << std::endl;
@@ -57,6 +57,20 @@ int main(int argc, char** argv) {
         SDL_DestroyWindow(window);
         SDL_Quit();
         return 1;
+    }
+
+    bool force_exit {false};
+    while (processor.running() && !force_exit) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+            case SDL_KEYDOWN: force_exit = true; break;
+            default: break;
+            }
+        }
+
+        SDL_RenderClear(renderer);
+        SDL_RenderPresent(renderer);
     }
 
     SDL_DestroyRenderer(renderer);
