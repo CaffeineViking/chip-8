@@ -58,8 +58,8 @@ namespace ch8 {
 
         static constexpr std::size_t WIDTH {64};
         static constexpr std::size_t HEIGHT {32};
-        byte screen_buffer[WIDTH * HEIGHT];  // The 64x32 sized screen needs to store its state. Instructions
-                                             // affecting the screen modify this, higher implementation will use 
+        byte screen_buffer[WIDTH * HEIGHT] = {0}; // The 64x32 sized screen needs to store its state. Instructions
+                                             // affecting the screen modify this, higher implementation will use
                                              // this. A zero represents no color, a one represents color.
 
         // Shitload of instructions below.
