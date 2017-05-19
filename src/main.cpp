@@ -42,7 +42,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    SDL_Window* window {SDL_CreateWindow("chip-8", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 320, 0)};
+    std::string title { "chip-8 @ " + std::string{ argv[1] } };
+    SDL_Window* window {SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 320, 0)};
     if (window == nullptr) {
         std::cerr << "SDL_CreateWindow failed: "
             << SDL_GetError() << std::endl;
