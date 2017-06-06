@@ -127,9 +127,11 @@ namespace ch8 {
     }
 
     void Processor::inst_cls() {
-        for (std::size_t i {0}; i < WIDTH * HEIGHT; ++i) {
-            screen_buffer[i] = 0x00; // Clear pixels.
+        for (std::size_t i {0}; i < SCREEN_WIDTH * SCREEN_HEIGHT; ++i) {
+            screen_buffer[i] = 0x00; // Clear the pixels to black color.
         }
+
+        screen_buffer_updated = true;
     }
 
     void Processor::inst_ret() {
@@ -201,7 +203,8 @@ namespace ch8 {
         for (std::size_t y {0}; y < length; ++y) {
             for (std::size_t x {0}; x < 8; ++x) {
                 // Find out the address translation, both for the screen and the sprite.
-                std::size_t screen_pixel = ((V[regx] + x) % WIDTH) + (((V[regy] + y) % HEIGHT) * WIDTH);
+                std::size_t screen_pixel = ((V[regx] + x) % SCREEN_WIDTH)
+                                        + (((V[regy] + y) % SCREEN_HEIGHT) * SCREEN_WIDTH);
                 addr sprite_line = y;
 
                 // Perform a XOR operation when writing the pixel, if it already has had a
@@ -212,6 +215,7 @@ namespace ch8 {
             }
         }
 
+        screen_buffer_updated = true;
         if (collided) V[0x0F] = 1;
         else V[0x0F] = 0;
     }
