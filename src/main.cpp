@@ -91,6 +91,8 @@ int main(int argc, char** argv) {
 
     bool step_mode { false };
     bool force_exit { false };
+    unsigned current_time { SDL_GetTicks() };
+    unsigned interrupt_time { SDL_GetTicks() };
     while (processor.running() && !force_exit) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -144,8 +146,7 @@ int main(int argc, char** argv) {
                     processor.step(); // Very useful for debugging chip-8 programs :D.
                     processor.dump(); // Print the current state of the processor at the PC.
                     program_counter = processor.register_state(ch8::Processor::Register::PC);
-                    print_instruction(memory, program_counter); std::cout << '\n';
-                    print_display(processor.display_buffer());
+                    print_instruction(memory, program_counter);
                     std::cout << std::endl;
                     step_mode = true;
                     break;
@@ -155,6 +156,15 @@ int main(int argc, char** argv) {
             }
         }
 
+        current_time = SDL_GetTicks();
+        // Both timers go at around 60 Hz~~16ms.
+        if (current_time - interrupt_time >= 16) {
+            if (processor.sound_issued()) processor.tick_sound();
+            if (processor.delay_issued()) processor.tick_delay();
+            interrupt_time = current_time;
+        }
+
+        // Actually emulate the Chip-8 :)
         if (!step_mode) processor.step();
         if (processor.display_updated()) {
             SDL_LockTexture(display_buffer_texture, nullptr,
