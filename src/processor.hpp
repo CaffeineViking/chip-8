@@ -17,9 +17,15 @@ namespace ch8 {
             ST, DT, PC, I, SP
         };
 
+        // Probably won't change,  but it's nice anyway.
+        static constexpr std::size_t SCREEN_WIDTH  {64};
+        static constexpr std::size_t SCREEN_HEIGHT {32};
+
         Processor(Memory&); // Always needs main memory.
         bool running() const { return still_running; } // Is the program still running?
         void execute(Instruction, byte, byte); // Executes the instruction with arguments given.
+        bool display_updated() const { return screen_buffer_updated; }
+        void updated_display() { screen_buffer_updated = false; }
         void step(); // Steps the processor state forward.
 
         // Outputs to emulated IO.
@@ -56,11 +62,10 @@ namespace ch8 {
         static constexpr byte KEYS {16}; // The Chip-8 has officially 16 keys.
         bool key_states[KEYS] = {0}; // A key is either pressed or not.
 
-        static constexpr std::size_t WIDTH {64};
-        static constexpr std::size_t HEIGHT {32};
-        byte screen_buffer[WIDTH * HEIGHT] = {0}; // The 64x32 sized screen needs to store its state. Instructions
-                                             // affecting the screen modify this, higher implementation will use
-                                             // this. A zero represents no color, a one represents color.
+        bool screen_buffer_updated { true }; // If we need to draw the screen on the emulator or not.
+        // The 64x32 sized screen needs to store its state. Instructions // affecting the screen modify
+        // this, higher implementation will use // this. A zero represents no color, a one is color :).
+        byte screen_buffer[SCREEN_WIDTH * SCREEN_HEIGHT] = { 0 }; // Buffer for the emulator for later.
 
         // Shitload of instructions below.
         void inst_cls(); // Clear screen.
