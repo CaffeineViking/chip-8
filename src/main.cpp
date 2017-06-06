@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <string>
 #include <SDL.h>
@@ -24,6 +25,21 @@ ch8::Memory load(const char* path) {
     ch8::Memory memory { reinterpret_cast<ch8::byte*>(program), program_size };
     delete[] program; // Program already copied.
     return memory; // Should use RVO semantics.
+}
+
+// Print the next instruction to be executed by the processor at current PC.
+void print_instruction(const ch8::Memory& memory, ch8::addr program_counter) {
+    std::cout << "Next instruction: 0x" << std::setw(2) << std::setfill('0') << std::hex << static_cast<ch8::addr>(memory.read(program_counter))
+        << std::setw(2) << std::setfill('0') << std::hex << static_cast<ch8::addr>(memory.read(program_counter + 1)) << std::endl;
+}
+
+// Prints display buffer (for debugging)...
+void print_display(const ch8::byte* buffer) {
+    for (std::size_t y {0}; y < 32; ++y) {
+        for (std::size_t x {0}; x < 64; ++x) {
+            std::cout << static_cast<unsigned>(buffer[x + y * 64]);
+        } std::cout << std::endl;
+    }
 }
 
 int main(int argc, char** argv) {
@@ -64,7 +80,7 @@ int main(int argc, char** argv) {
 
     int display_buffer_width = -1; // The size of a row in the texture below (queried by SDL_LockTexture).
     ch8::byte* display_buffer = nullptr; // We will load the buffer of the texture that is created in SDL_CreateTexture below, here.
-    SDL_Texture* display_buffer_texture { SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, 64, 32) };
+    SDL_Texture* display_buffer_texture { SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 64, 32) };
     if (display_buffer_texture == nullptr) {
         std::cerr << "SDL_CreateTexture failed.: "
                   << SDL_GetError() << std::endl;
@@ -73,6 +89,7 @@ int main(int argc, char** argv) {
         SDL_Quit();
     }
 
+    bool step_mode { false };
     bool force_exit { false };
     while (processor.running() && !force_exit) {
         SDL_Event event;
@@ -101,6 +118,7 @@ int main(int argc, char** argv) {
                 case SDLK_v: processor.key_released(0x0F); break;
                 } break;
             case SDL_KEYDOWN:
+                ch8::addr program_counter;
                 switch (event.key.keysym.sym) {
                 case SDLK_1: processor.key_pressed(0x01); break;
                 case SDLK_2: processor.key_pressed(0x02); break;
@@ -122,26 +140,32 @@ int main(int argc, char** argv) {
                 case SDLK_c: processor.key_pressed(0x0B); break;
                 case SDLK_v: processor.key_pressed(0x0F); break;
                 case SDLK_ESCAPE: force_exit = true;  break;
-                case SDLK_j: processor.step(); break;
-                case SDLK_k: processor.dump(); break;
-                case SDLK_l:
-                    while (processor.delay_issued()) processor.tick_delay();
-                    while (processor.sound_issued()) processor.tick_sound();
+                case SDLK_j:
+                    processor.step(); // Very useful for debugging chip-8 programs :D.
+                    processor.dump(); // Print the current state of the processor at the PC.
+                    program_counter = processor.register_state(ch8::Processor::Register::PC);
+                    print_instruction(memory, program_counter); std::cout << '\n';
+                    print_display(processor.display_buffer());
+                    std::cout << std::endl;
+                    step_mode = true;
                     break;
-                } break;
+                case SDLK_k: step_mode = false; break;
+                }
             default: break;
             }
         }
 
+        if (!step_mode) processor.step();
         if (processor.display_updated()) {
             SDL_LockTexture(display_buffer_texture, nullptr,
                             reinterpret_cast<void**>(&display_buffer),
                             &display_buffer_width);
             for (std::size_t i { 0 }; i < 64 * 32; ++i) {
                 // Only vary the game screen between black and white for now...
-                display_buffer[i*3 + 0] = processor.display_buffer()[i] * 0xFF;
-                display_buffer[i*3 + 1] = processor.display_buffer()[i] * 0xFF;
-                display_buffer[i*3 + 2] = processor.display_buffer()[i] * 0xFF;
+                display_buffer[i*4] = 0xFF; // Alpha channel for some reason...
+                display_buffer[i*4 + 1] = processor.display_buffer()[i] * 0xFF;
+                display_buffer[i*4 + 2] = processor.display_buffer()[i] * 0xFF;
+                display_buffer[i*4 + 3] = processor.display_buffer()[i] * 0xFF;
             } SDL_UnlockTexture(display_buffer_texture);
 
             SDL_RenderClear(renderer);

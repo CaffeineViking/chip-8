@@ -103,7 +103,8 @@ namespace ch8 {
     }
 
     void Processor::dump() const {
-        std::cout << "PC: " << std::setw(4) << std::hex << PC
+        std::cout << std::setfill('0')
+                  << "PC: " << std::setw(4) << std::hex << PC
                   << ", SP: " << std::setw(4) << std::hex << static_cast<short>(SP) << ',' << std::endl
                   << " I: " << std::setw(4) << std::hex << I
                   << ", V0: " << std::setw(4) << std::hex << static_cast<short>(V[0])
