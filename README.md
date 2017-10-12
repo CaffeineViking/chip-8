@@ -1,4 +1,4 @@
-Chip-8 Interpreter in C++11/14
+Chip-8 Interpreter
 ==============================
 
 <p align="center">
