@@ -26,6 +26,8 @@ Usage and Documents
 - **Z, X, C, V**: maps A, 0, B, F on chip-8.
 - **ESC**: terminates the interpreter.
 
+- You'll find some design docs in ```docs```.
+
 Dependencies
 ------------
 
