@@ -20,6 +20,7 @@ Usage and Documents
 - ```bin/chip-8.out <path-for-rom>```
 - ```bin/chip-8.out share/INVADERS```
 - **J**: start or step the built-in debugger.
+- **K**: will resume normal execution.
 - **1, 2, 3, 4**: maps 1, 2, 3, C on chip-8.
 - **Q, W, E, R**: maps 4, 5, 6, D on chip-8.
 - **A, S, D, F**: maps 7, 8, 9, E on chip-8.
