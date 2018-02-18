@@ -5,6 +5,8 @@ Chip-8 Interpreter
     <img src="/share/screenshot.png" alt="Space Invaders in the Interpreter"/>
 </p>
 
+A fairly simple Chip-8 interpreter written in modern C++, it features all of the standard instructions and comes bundled with a nice built-in memory and program debugger. I've tested space invaders, tetris and a couple of other games, and it seems to run fine. I haven't implemented sound yet though, that is still on my to-do list. Need to work on timer "synchronization" too.
+
 Compiling and Testing
 ---------------------
 
@@ -13,6 +15,8 @@ Compiling and Testing
 3. Issue ```make``` and hope for the best.
 4. You will find that ```bin``` has stuff.
 5. Either start the program or test suite.
+
+or: `makepkg -i` if you're on Arch Linux.
 
 Usage and Documents
 -------------------
