@@ -7,10 +7,10 @@ pkgdesc="Another Chip-8 Interpreter"
 arch=('i686' 'x86_64')
 url="https://github.com/CaffeineViking/chip-8"
 license=('MIT')
-provides=('chip-i')
+provides=('chip-8')
 depends=('sdl2' 'sdl2_image')
 makedepends=('git')
-source=('git+https://github.com/CaffeineViking/chip-i')
+source=('git+https://github.com/CaffeineViking/chip-8')
 md5sums=('SKIP')
 
 pkgver() {
@@ -20,11 +20,12 @@ pkgver() {
 
 build() {
 	cd chip-8
-	make
+	mkdir bin
+	make program
 }
 
 package() {
-	cd chip-i
-	install -Dm755 bin/chip-8 "$pkgdir"/usr/bin/chip-8
+	cd chip-8
+	install -Dm755 bin/chip-8.out "$pkgdir"/usr/bin/chip-8
 	install -Dm644 LICENSE.md "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
 }

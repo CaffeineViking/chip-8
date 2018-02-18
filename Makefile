@@ -50,15 +50,17 @@ program_NAME := $(program_NAME)_release
 test_NAME := $(test_NAME)_release
 endif
 
-.PHONY: all test program run run_test run_program clean clean_test clean_program distclean distclean_test distclean_program distrun distrun_test distrun_program
+.PHONY: all test program run run_test run_program clean clean_test clean_program distclean distclean_test distclean_program distrun distrun_test distrun_program directory
 all: test program
 test: bin/$(test_NAME).out
 program: bin/$(program_NAME).out
 
-bin/$(test_NAME).out: $(test_OBJS)
+bin/$(test_NAME).out: directory $(test_OBJS)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(test_OBJS) -o bin/$(test_NAME).out $(LDFLAGS) $(TARGET_ARCH)
-bin/$(program_NAME).out: $(program_OBJS)
+bin/$(program_NAME).out: directory $(program_OBJS)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(program_OBJS) -o bin/$(program_NAME).out $(LDFLAGS) $(TARGET_ARCH)
+directory:
+	mkdir -p bin
 
 run: run_test run_program
 run_test: test
