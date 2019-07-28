@@ -4,6 +4,8 @@
 *.o
 *.obj
 
+bin/
+
 share/*
 
 # Precompiled Headers
@@ -28,3 +30,5 @@ share/*
 *.exe
 *.out
 *.app
+
+desktop.ini
