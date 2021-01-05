@@ -51,7 +51,7 @@ test_NAME := $(test_NAME)_release
 endif
 
 .PHONY: all test program run run_test run_program clean clean_test clean_program distclean distclean_test distclean_program distrun distrun_test distrun_program directory
-all: test program
+all: program
 test: bin/$(test_NAME).out
 program: bin/$(program_NAME).out
 
