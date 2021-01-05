@@ -55,6 +55,9 @@ all: test program
 test: bin/$(test_NAME).out
 program: bin/$(program_NAME).out
 
+src/main_test.o: src/main_test.cpp
+	$(CXX) $(CXXFLAGS) -c src/main_test.cpp -o src/main_test.o $(TARGET_ARCH)
+
 bin/$(test_NAME).out: directory $(test_OBJS)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(test_OBJS) -o bin/$(test_NAME).out $(LDFLAGS) $(TARGET_ARCH)
 bin/$(program_NAME).out: directory $(program_OBJS)
